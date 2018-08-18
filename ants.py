@@ -240,6 +240,13 @@ class Ant(object):
         ### need something
         pass
 
+
+
+############ TODO
+#   READ ENVIRONMENT
+#   EAT SIGNAL
+#   ATTACK SIGNAL
+#   CHANGE env[] to get_stuff ...
     
                     
 
