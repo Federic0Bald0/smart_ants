@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import sys
+import time
 import random 
 
 class Environment(object):
@@ -38,8 +40,14 @@ class Environment(object):
     def remove_danger(self, x, y):
         self.env[x][y] = 0
 
-    def print_env(self):
-        print self.env
+    def get_value(self, x, y):
+        return self.env[x][y]
 
-# env = Environment(10)
-# env.print_env()
+    def print_env(self):
+        sys.stdout.write("\r" + str(self.env))
+        sys.stdout.flush()
+
+for i in range(0, 100):
+    env = Environment(10)
+    env.print_env()
+    time.sleep(1)
