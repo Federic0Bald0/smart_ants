@@ -26,6 +26,7 @@ class Ant(object):
         else:
             self.synapses = init_weights([2,24])
 
+
     def get_position(self):
         return self.position
                     
@@ -45,7 +46,6 @@ class Ant(object):
 
         return action
     
-    # def pass_genes():
     
     def move_to_target(self, target_position): 
 
@@ -61,8 +61,8 @@ class Ant(object):
         # stesso discorso per le colonne
         new_y = self.position[1] + (abs(self.position1[1]] - target_position[1]) - 1)/(self.position[1] - target_position[1])
 
-        if self.chek_if_free(target_position) = False
-        target_position = find_nearest_free(target_position)
+        if self.env.is_free(target_position) == False
+            target_position = find_nearest_free(target_position)
 
         self.position = [new_x, new_y]
         
@@ -189,46 +189,39 @@ class Ant(object):
                 if target_position[1] <= self.position[1]:
 
                     target_position[1] = target_position[1] + 1 
-                    end = self.chek_if_free(target_position)
+                    end = self.env.is_free(target_position)
                                                   
                 else:
                     target_position[0] = target_position[0] + 1
-                    end = self.chek_if_free(target_position)
+                    end = self.env.is_free(target_position)
 
             if target_position[0] = self.position[0]:
                 if target_position[1] < self.position[1]:
 
                     target_position[0] = target_position[0] - 1 
-                    end = self.chek_if_free(target_position)
+                    end = self.env.is_free(target_position)
                 
                 else:
 
                     target_position[0] = target_position[0] + 1 
-                    end = self.chek_if_free(target_position)
+                    end = self.env.is_free(target_position)
             
             if target_position[0] > self.position[0]:
                 if target_position[1] >= self.position[1]:
 
                     target_position[1] = target_position[1] - 1 
-                    end = self.chek_if_free(target_position)
+                    end = self.env.is_free(target_position)
                 
                 else:
 
                     target_position[0] = target_position[0] - 1 
-                    end = self.chek_if_free(target_position)
+                    end = self.env.is_free(target_position)
 
         id c > 8:
             target_position = self.position
         
         return(target_position)
 
-    # controlla se la posizione desiderata e' libera oppure no
-    def chek_if_free(target_position):
-        if env[target_position[0], target_position[1]] == 0:
-            return True
-        else:
-            return False
-    
     #aumenta la propria energia
     def get_energy(self, energy):
         self.energy = self.energy + energy
