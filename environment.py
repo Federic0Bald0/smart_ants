@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-import time
+
 import random 
-import curses
 import numpy as np
 
 class Environment(object):
@@ -10,7 +9,7 @@ class Environment(object):
         self.size = size
         self.dangers = []
         # enviromment
-        self.env = np.zeros(self.size, self.size)
+        self.env = np.zeros([self.size, self.size])
         n_food = self.size
         # placing food
         k = 0
@@ -26,7 +25,7 @@ class Environment(object):
         return self.size
 
     def is_free(self, x, y):
-        return self.env[x][y] != 0
+        return self.env[x][y] == 0
 
     def remove_element(self, x, y):
         self.env[x][y] = 0
@@ -34,38 +33,26 @@ class Environment(object):
     def get_value(self, x, y):
         return self.env[x][y]
 
-    def display(self):
-        # display environment 
-        # TODO missing ants
-        i = 0 
-        while True:
-            try:
-                win = curses.initscr()
-                win.clear()
-                win.addstr(self.beautify())
-                win.refresh
-                time.sleep(1)
-                self.move_danger()
-            except Exception as e:
-                print e
-                pass
+    def set_value(self, x, y, v):
+        self.env[x][y] = v
 
-    def beautify(self):
+    def to_string(self):
         # build string environment
-        # TODO missing ants
         """
         <> -> danger
         *  -> food 
         """
         env_str = ""
         for i in range(self.size):
-            env_str += '|  '
+            env_str += '|'
             for j in range(self.size):
-                # if self.env[i][j] < 0:
-                #     env_str += '<>  '
-                if self.env[i][j] > 0:
-                    env_str +=  '*  '
+                if self.env[i][j] < 0:
+                    env_str += '<>  '
+                if self.env[i][j] == 1:
+                    env_str +=  '*   '
+                if self.env[i][j] == 2:
+                    env_str += '++  '
                 if self.env[i][j] == 0: 
-                    env_str +=  '   '
+                    env_str +=  '    '
             env_str +=  '|\n'
         return env_str

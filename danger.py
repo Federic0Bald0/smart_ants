@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import math
 import random 
 
@@ -6,18 +8,39 @@ class Danger(object):
     def __init__(self, env):
 
         env_size = env.get_size()
-        # position in env 
-        x = randint(0, env_size-1)
-        y = randint(0, env_size-1)
-        self.position = [x, y]
+        # position in env
+        while True: 
+            x = random.randint(0, env_size-1)
+            y = random.randint(0, env_size-1)
+            if env.is_free(x, y):
+                self.position = [x, y]
+                env.set_value(x, y, -1)
+                break
+        # number ants close to the danger
+        self.nn_ant = 0
+        self.get_surrounding_ants(env)
         # power danger
-        self.power = - randint(-1, -10)
+        self.power = - random.randint(1, 10)
 
     def get_position(self):
         return self.position
 
     def get_power(self):
         return self.power
+    
+    def get_surrounding_ants(self, env):
+        env_size = env.get_size()
+        for i in range(3):
+            for j in range(3):
+                x = (self.position[0]-1+i)%env_size
+                y = (self.position[1]-1+j)%env_size
+                if (x < 0):
+                    x += 1
+                if (y < 0):
+                    y += 1
+                if env.get_value(x, y) == 2:
+                    self.nn_ant += 1 
+
 
     def move_random(self, env):
 
@@ -33,28 +56,36 @@ class Danger(object):
                 (x >= 0) and \
                 (env.is_free(x+1, y)):
                 # move up
+                    env.set_value(x+1, y, -1)
+                    env.remove_element(x, y)
                     self.position = [x+1, y]
-            if (way <= 0.5) and \
+            elif (way <= 0.5) and \
                 (x <= env_size-1) and \
                 (x > 0) and \
                 (env.is_free(x-1, y)):
                 # move down
+                    env.set_value(x-1, y, -1)
+                    env.remove_element(x, y)
                     self.position = [x-1, y]
-        if axis > 2:
+        elif axis > 2:
             # move on y-axis
             if (way > 0.5) and \
                 (y < env_size-1) and \
                 (y >= 0) and \
                 (env.is_free(x, y+1)):
                 # move right
+                    env.set_value(x, y+1, -1)
+                    env.remove_element(x, y)
                     self.position = [x, y+1]
-            if (way <= 0.5) and \
+            elif (way <= 0.5) and \
                 (y <= env_size-1) and \
                 (y > 0) and \
                 (env.is_free(x, y-1)):
                 # move left
+                    env.set_value(x, y-1, -1)
+                    env.remove_element(x, y)
                     self.position = [x, y-1]
-        if axis > 1:
+        elif axis > 1:
             # move on z-axis (diagonally)
             if (way > 1) and \
                 (y < env_size-1) and \
@@ -63,49 +94,68 @@ class Danger(object):
                 (x >= 0) and \
                 (env.is_free(x+1, y+1)):
                 # move north-est
+                    env.set_value(x+1, y+1, -1)
+                    env.remove_element(x, y)
                     self.position = [x+1, y+1]
-            if (way > 0.75) and \
+            elif (way > 0.75) and \
                 (y <= env_size-1) and \
                 (x < env_size-1) and \
                 (y > 0) and \
                 (x >= 0) and \
                 (env.is_free(x+1, y-1)):
                 # move south-est 
+                    env.set_value(x+1, y-1, -1)
+                    env.remove_element(x, y)
                     self.position = [x+1, y-1]
-            if (way > 0.50) and \
+            elif (way > 0.50) and \
                 (y <= env_size-1) and \
                 (x <= env_size-1) and \
                 (y > 0) and \
                 (x > 0) and \
                 (env.is_free(x-1, y-1)):
                 # move south-west
+                    env.set_value(x-1, y-1, -1)
+                    env.remove_element(x, y)
                     self.position = [x-1, y-1]
-            if (way > 0.25) and \
-                (y <= env_size-1) and \
-                (x < env_size-1) and \
-                (y > 0) and \
-                (x >= 0) and \
+            elif (way > 0.25) and \
+                (y < env_size-1) and \
+                (x <= env_size-1) and \
+                (y >= 0) and \
+                (x > 0) and \
                 (env.is_free(x-1, y+1)):
                 # move north-west
+                    env.set_value(x-1, y+1, -1)
+                    env.remove_element(x, y)
                     self.position = [x-1, y+1]
 
-    def damage_ant(self, ant):
-        ant.get_damage(self.power*(-10))
+    def damage_ant(self, env, ant):
+        ant.get_damage(env, damage=self.power*(-10))
 
     def attack_ant(self, env, colony):
+        env_size = env.get_size()
         for i in range(3):
             for j in range(3):
-                x = self.position[0]-1+i
-                y = self.position[1]-1+j
-                if (x!= 1) and ( y != 1) and (env.is_ant(x, y)):
+                x = (self.position[0]-1+i)%env_size
+                y = (self.position[1]-1+j)%env_size
+                if (x < 0):
+                    x += 1
+                if (y < 0):
+                    y += 1 
+                if (self.position != [x, y]) and (env.get_value(x, y) == 2):
                     for ant in colony:
-                        if ant.position[0] == [x, y]:
-                            self.damage_ant(ant)
+                        ant_position = ant.get_position() 
+                        if ant_position == [x, y]:
+                            self.damage_ant(env, ant)
+                            colony.remove(ant)
+                            env.remove_element(ant_position[0], ant_position[1])
+                            return True
+        return False
 
-    def get_damage(self, n_ant):
-        if (self.power / 2) <= n_ant:
-            return True
+    def get_damage(self, env):
+        if (self.power / 2) <= self.nn_ant:
+            env.remove_element(self.position[0], self.position[1])
             del self
+            return True
         else:
             return False
             

@@ -1,5 +1,6 @@
-# https://www.python.org/dev/peps/pep-0008/  ------ PEP8 style guide
 # -*- coding: utf-8 -*-
+
+# https://www.python.org/dev/peps/pep-0008/  ------ PEP8 style guide
 import random
 import numpy as np
 import tensorflow as tf
@@ -15,14 +16,22 @@ class Ant(object):
         self.energy = 100 
         self.food_harvest = 0
         self.enemy_killed = 0
-        size = env.get_size()
+        self.status = 2
+        """
+        0 -> attacking
+        1 -> eating
+        2 -> moving
+        """
+        env_size = env.get_size()
         # choose randomly position in environment
         while True:
-            x = random.randint(0, size-1)
-            y = random.randint(0, size-1)
+            x = random.randint(0, env_size-1)
+            y = random.randint(0, env_size-1)
             # position i, j is free
             if env.is_free(x, y):
                 self.position = [x, y]    
+                env.set_value(x, y, 2)
+                break
         # weight inzialization                                                         
         if genetic_inh:
             # child
@@ -31,6 +40,8 @@ class Ant(object):
             # first generation 
             self.synapses = init_weights([2,25])
 
+    def get_status(self):
+        return self.status
 
     def get_position(self):
         return self.position
@@ -48,11 +59,12 @@ class Ant(object):
         # sceglie l'azione con il valore maggiore
         # se entrambe le azioni possibili hanno un valore basso si muove in una direzione a caso
         action = tf.argmax([attack, eat, 0.2])        
+        self.status = action
 
         return action
     
     
-    def move_to_target(self, target_position): 
+    def move_to_target(self, env, target_position): 
 
         # self.position e target_position sono le coordinate [x,y] del target e di se stessi
         # se la differenza (abs(self.position[0] - target_position[0]) - 1) e' uguale ad uno allora significa che l'obiettivo
@@ -64,15 +76,18 @@ class Ant(object):
         new_x = self.position[0] + (abs(self.position[0] - target_position[0]) - 1)/(self.position[0] - target_position[0])
 
         # stesso discorso per le colonne
-        new_y = self.position[1] + (abs(self.position1[1]] - target_position[1]) - 1)/(self.position[1] - target_position[1])
+        new_y = self.position[1] + (abs(self.position[1] - target_position[1]) - 1)/(self.position[1] - target_position[1])
         
-        if env.is_free(target_position) == False
+        if env.is_free(target_position) == False:
         # maybe baised ???
             target_position = self.find_nearest_free(target_position)
-
+            self.move_to_target(env, target_position)
+            
         self.position = [new_x, new_y]
+        env.remove_element(targer_position[0], targer_position[1])
+        env.set_value(new_x, new_y, 2) # move ant 
         
-    def move_or_act(self, action):
+    def move_or_act(self, env, action, dangers):
 
         # se l'azione scelta e' un movimento casuale
         if action == 2:
@@ -91,8 +106,8 @@ class Ant(object):
             target_position = self.get_target(action)
 
             # se l'obiettivo della propria azione si trova in una delle caselle adiacenti la formica esegue una delle due azioni disponibili
-            if (abs(self.position[0] - target_position[0]) - 1) and (abs(self.position1[1]] - target_position[1]) - 1):
-               self.act(target_position, action)
+            if (abs(self.position[0] - target_position[0]) - 1) and (abs(self.position[1] - target_position[1]) - 1):
+               self.act(env, target_position, action, dangers)
 
             # altrimenti si muove verso di esso
             else:
@@ -111,17 +126,19 @@ class Ant(object):
         return input
 
     # esegue l'azione scelta (attack o eat) su un obiettivo adicente ad essa
-    def act(self, target_position, action):
+    def act(self, env, target_position, action, dangers):
 
         if action == 0:
-    #       attack
+            for danger in dangers:
+                if target_position == danger.get_position():
+                    danger.get_damage(env)
         else:
             self.rise_energy(10)
             self.food_harvest += 1
             env.remove_element(x, y)
 
     # rileva la posizione del suo target in base all'azione che vuole effettuare
-    def get_target(self, action):
+    def get_target(self, ion):
 
         # la ricerca e' effettuata dapprima sulle caselle adiacenti alla formica (il quadrato 3x3)
         # e poi sulle caselle della cornice piy' esterna
@@ -133,12 +150,12 @@ class Ant(object):
             # restituisce la posizione del nemico piu' vicino
             for i in range (3):
                 for j in range (3):
-                    if surrounding[self.position[0]-1+i, self.position[1]-1+j] < 0
+                    if surrounding[self.position[0]-1+i, self.position[1]-1+j] < 0:
                         return (self.position[0]-1+i, self.position[1]-1+j)
             
             for i in range (5):
                 for j in range (5):
-                    if surrounding[self.position[0]-2+i, self.position[1]-2+j] < 0 
+                    if surrounding[self.position[0]-2+i, self.position[1]-2+j] < 0:
                         return (self.position[0]-2+i, self.position[1]-2+j)
         
          # se l'azione scelta e' eat
@@ -147,20 +164,20 @@ class Ant(object):
             # restituisce la poszione del cibo piu' vicino
             for i in range (3):
                 for j in range (3):
-                    if surrounding[self.position[0]-1+i, self.position[1]-1+j] == 1
+                    if surrounding[self.position[0]-1+i, self.position[1]-1+j] == 1:
                         return (self.position[0]-1+i, self.position[1]-1+j)
             
             for i in range (5):
                 for j in range (5):
-                    if surrounding[self.position[0]-2+i, self.position[1]-2+j] == 1
+                    if surrounding[self.position[0]-2+i, self.position[1]-2+j] == 1:
                         return (self.position[0]-2+i, self.position[1]-2+j)
     
     # funzione per il calcolo dei danni 
-    def get_damage(self, damage=1):
+    def get_damage(self, env, damage=1):
         self.energy = self.energy - damage
         
         if self.energy <= 0:
-            self.sucide
+            env.remove_element(self.position[0], self.position[1])
     
     # fuzione che la formica effettua ad ogni turno come 'routine'
     # ovvero: esamina l'ambiente --> scegli un'azione --> effettua l'azione --> prendi 1 danno
@@ -188,7 +205,7 @@ class Ant(object):
                     target_position[0] = target_position[0] + 1
                     end = env.is_free(target_position)
 
-            if target_position[0] = self.position[0]:
+            if target_position[0] == self.position[0]:
                 if target_position[1] < self.position[1]:
 
                     target_position[0] = target_position[0] - 1 

@@ -1,6 +1,5 @@
-# selection
-# breeding
-# mutate
+# -*- coding: utf-8 -*-
+
 from ants import Ant
 import random
 import numpy as np
