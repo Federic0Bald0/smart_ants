@@ -32,15 +32,14 @@ class Danger(object):
         env_size = env.get_size()
         for i in range(3):
             for j in range(3):
-                x = (self.position[0]-1+i)%env_size
-                y = (self.position[1]-1+j)%env_size
-                if (x < 0):
-                    x += 1
-                if (y < 0):
-                    y += 1
-                if env.get_value(x, y) == 2:
-                    self.nn_ant += 1 
 
+                x = (self.position[0]-1+i)
+                y = (self.position[1]-1+j)
+            
+                if not ((x<0) or (x > env_size-1) or \
+                    (y<0) or (y > env_size-1)):
+                        if env.get_value(x, y) == 2:
+                            self.nn_ant += 1 
 
     def move_random(self, env):
 
@@ -129,27 +128,32 @@ class Danger(object):
                     self.position = [x-1, y+1]
 
     def damage_ant(self, env, ant):
-        ant.get_damage(env, damage=self.power*(-10))
+        res = ant.get_damage(env, damage=self.power*(10))
+        if not res:
+            return res
+        # print ant.get_energy()
+        # print self.power*(10)
 
     def attack_ant(self, env, colony):
         env_size = env.get_size()
         for i in range(3):
             for j in range(3):
-                x = (self.position[0]-1+i)%env_size
-                y = (self.position[1]-1+j)%env_size
-                if (x < 0):
-                    x += 1
-                if (y < 0):
-                    y += 1 
-                if (self.position != [x, y]) and (env.get_value(x, y) == 2):
-                    for ant in colony:
-                        ant_position = ant.get_position() 
-                        if ant_position == [x, y]:
-                            self.damage_ant(env, ant)
-                            colony.remove(ant)
-                            env.remove_element(ant_position[0], ant_position[1])
-                            return True
+
+                x = (self.position[0]-1+i)
+                y = (self.position[1]-1+j)
+            
+                if not ((x<0) or (x > env_size-1) or \
+                    (y<0) or (y > env_size-1)):
+                    if env.get_value(x, y) == 2:
+                        for ant in colony:
+                            ant_position = ant.get_position() 
+                            if ant_position == [x, y]:
+                                res = self.damage_ant(env, ant)
+                                if not res:
+                                    colony.remove(ant)
+                                return True
         return False
+                        
 
     def get_damage(self, env):
         if (self.power / 2) <= self.nn_ant:
