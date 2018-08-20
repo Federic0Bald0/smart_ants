@@ -26,6 +26,7 @@ if __name__ == "__main__":
         colony.append(Ant(env))
     while True:
         try:
+            print('ciao')
             # win = curses.initscr()
             # win.clear()
             # win.addstr(env.to_string())

@@ -6,8 +6,8 @@ import numpy as np
 import tensorflow as tf
 
 def init_weights(shape):
-    init_random_dist = tf.truncated_normal(shape, stddev=1.0)
-    return tf.Variable(init_random_dist)
+    init_random_dist = np.random.normal(scale=3, size=[2,25])
+    return init_random_dist
 
 class Ant(object):
     
@@ -52,13 +52,23 @@ class Ant(object):
     def pick_action(self, env):
 
         # gets information from the surroundings
-        input = tf.reshape(self.get_surrounding(env), [25])
+        input = np.reshape(self.get_surrounding(env), [-1])
 
         # effective ant brain: a matrix multiplication betweeen inputs and weigths to produce the outputs
         # the highest output value is selected as next action
         # the weigths represent the genes that we are going to pass to the next generation
-        attack = tf.nn.relu(tf.matmul(input, self.synapses[0]))[0]
-        eat = tf.nn.relu(tf.matmul(input, self.synapses[1]))[0]
+
+        # matmul for compute the NN output
+        attack = np.matmul(input.astype(float), self.synapses[0].astype(float))
+        eat = np.matmul(input.astype(float), self.synapses[1].astype(float))
+
+        # manually applied RELU
+        attack = max(attack, 0)
+        eat = max(eat, 0)
+
+        #DEPRECATED tensorflow functions
+        # attack = tf.nn.relu(tf.matmul(tf.cast(input, tf.float32), self.synapses[0]))[0]
+        # eat = tf.nn.relu(tf.matmul(tf.cast(input, tf.float32), tf.transpose(self.synapses[1])))[0]
 
         # if both action have low value the ant move at random
         action = tf.argmax([attack, eat, 0.2])        
@@ -70,18 +80,29 @@ class Ant(object):
     def move_to_target(self, env, target_position): 
 
         # set the direction of the incoming movement, X axis
-        new_x = self.position[0] + (abs(self.position[0] - target_position[0]) - 1)/(self.position[0] - target_position[0]) 
 
-        # Y axis
-        new_y = self.position[1] + (abs(self.position[1] - target_position[1]) - 1)/(self.position[1] - target_position[1]) 
+        # this if avoid dividing for 0
+        if abs(self.position[0] - target_position[0]) != 0:
+            new_x = self.position[0] + (abs(self.position[0] - target_position[0]) - 1)/(self.position[0] - target_position[0])
+
+        else:
+            new_x = self.position[0]
         
-        if env.is_free(target_position) == False:
+        # Y axis
+        if abs(self.position[1] - target_position[1]) != 0:
+            new_y = self.position[1] + (abs(self.position[1] - target_position[1]) - 1)/(self.position[1] - target_position[1])
+
+        else:
+            new_y = self.position[1]
+        
+        if env.is_free(target_position[0], target_position[1]) == False:
         # if the designed position is already occupied the ant look for a new one
-            target_position = self.find_nearest_free(target_position)
+            target_position = self.find_nearest_free(env, target_position)
             self.move_to_target(env, target_position)
-            
+        
+        old_position = self.position
         self.position = [new_x, new_y]
-        env.remove_element(targer_position[0], targer_position[1])
+        env.remove_element(old_position[0], old_position[1])
         env.set_value(new_x, new_y, 2) # move ant 
         
     def move_or_act(self, env, action, dangers):
@@ -105,15 +126,16 @@ class Ant(object):
         else:
         
             # read the target's location
-            target_position = self.get_target(action)
+            target_position = self.get_target(env, action)
 
             # if the target is near enough the ant move or eat
-            if (abs(self.position[0] - target_position[0]) - 1) and (abs(self.position[1] - target_position[1]) - 1):
+            if (abs(self.position[0] - target_position[0]) - 1) and (abs(self.position[1] - target_position[1]) - 1)\
+                and (self.position != target_position):
                self.act(env, target_position, action, dangers)
 
             # if no it moves towards the target
             else:
-                self.move_to_target(target_position)
+                self.move_to_target(env, target_position)
     
     # look at the close positions to see what's in it
     def get_surrounding(self, env):
@@ -125,8 +147,8 @@ class Ant(object):
                 x = (self.position[0]-1+i)
                 y = (self.position[1]-1+j)
             
-                if not ((x<0) or ((x/env_size-1)>1) or \
-                    (y<0)or ((y/env_size-1)>1)):
+                if not ((x<0) or (x > (env_size-1)) or \
+                    (y<0) or (y > (env_size-1))):
                         input[i,j] = env.get_value(x, y)
 
         input[2, 2] = 0
@@ -152,6 +174,7 @@ class Ant(object):
 
     # rileva la posizione del suo target in base all'azione che vuole effettuare
     def get_target(self, env, action):
+        env_size = env.get_size()
         for k in range (1):
             for i in range(3+(2*k)):
                 for j in range(3+(2*k)):
@@ -165,6 +188,8 @@ class Ant(object):
                              ((action  == 1) and (env.get_value(x, y) == -1)):
                            
                             return(x, y)
+        
+        return(self.position)
     
     # funzione per il calcolo dei danni 
     def get_damage(self, env, damage=1):
@@ -175,7 +200,9 @@ class Ant(object):
     
     # se la posizione desiderata e' occupata si muove nella prima posizione libera controllando
     # le posizioni in senso antiorario
-    def find_nearest_free(self, target_position, end=False):
+
+    # STA ROBA VA RISCRITTA!!!!!
+    def find_nearest_free(self, env, target_position, end=False):
 
         c = 0
         while end == False and c < 9:
@@ -184,33 +211,33 @@ class Ant(object):
                 if target_position[1] <= self.position[1]:
 
                     target_position[1] = target_position[1] + 1 
-                    end = env.is_free(target_position)
+                    end = env.is_free(target_position[0], target_position[1])
                                                   
                 else:
                     target_position[0] = target_position[0] + 1
-                    end = env.is_free(target_position)
+                    end = env.is_free(target_position[0], target_position[1])
 
             if target_position[0] == self.position[0]:
                 if target_position[1] < self.position[1]:
 
                     target_position[0] = target_position[0] - 1 
-                    end = env.is_free(target_position)
+                    end = env.is_free(target_position[0], target_position[1])
                 
                 else:
 
                     target_position[0] = target_position[0] + 1 
-                    end = env.is_free(target_position)
+                    end = env.is_free(target_position[0], target_position[1])
             
             if target_position[0] > self.position[0]:
                 if target_position[1] >= self.position[1]:
 
                     target_position[1] = target_position[1] - 1 
-                    end = env.is_free(target_position)
+                    end = env.is_free(target_position[0], target_position[1])
                 
                 else:
 
                     target_position[0] = target_position[0] - 1 
-                    end = self.env.is_free(target_position)
+                    end = env.is_free(target_position[0], target_position[1])
 
         if c > 8:
             target_position = self.position
