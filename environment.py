@@ -40,7 +40,8 @@ class Environment(object):
         # build string environment
         """
         <> -> danger
-        *  -> food 
+        *  -> food
+        ++ -> ant 
         """
         env_str = ""
         for i in range(self.size):

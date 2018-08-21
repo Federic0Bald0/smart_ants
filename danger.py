@@ -131,6 +131,7 @@ class Danger(object):
         res = ant.get_damage(env, damage=self.power*(10))
         if not res:
             return res
+        return True
         # print ant.get_energy()
         # print self.power*(10)
 

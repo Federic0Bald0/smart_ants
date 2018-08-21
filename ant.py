@@ -3,7 +3,6 @@
 # https://www.python.org/dev/peps/pep-0008/  ------ PEP8 style guide
 import random
 import numpy as np
-import tensorflow as tf
 
 def init_weights(shape):
     init_random_dist = np.random.normal(scale=3, size=[2,25])
@@ -13,7 +12,7 @@ class Ant(object):
     
     def __init__(self, env, genetic_inh=None):
         
-        self.energy = 100
+        self.energy = 20
         self.food_harvest = 0
         self.enemy_killed = 0
         self.status = 2
@@ -83,51 +82,53 @@ class Ant(object):
         return action
     
     
-    def move_to_target(self, env, target_position):
+    def set_movement(self, env, target_position):
 
-        # if the ant should not move this function just does nothing
-        if target_position == self.position:
-            return
         # set the direction of the incoming movement, X axis
-
-        # this if avoid dividing for 0
-        if (abs(self.position[0] - target_position[0]) - 1) > 0:
+        if (abs(self.position[0] - target_position[0])) == 1:
+            new_x = self.position[0] + (target_position[0] - self.position[0])
+            new_x = int(new_x)        
+        elif (abs(self.position[0] - target_position[0])) == 2:
             new_x = self.position[0] + (target_position[0] - self.position[0])/2
             new_x = int(new_x)
-
         else:
             new_x = self.position[0]
         
         # Y axis
-        if (abs(self.position[1] - target_position[1]) - 1) > 0:
+        if (abs(self.position[1] - target_position[1])) == 1:
+            new_y = self.position[1] + (target_position[1] - self.position[1])
+            new_y = int(new_y)
+        elif (abs(self.position[1] - target_position[1])) == 2:
             new_y = self.position[1] + (target_position[1] - self.position[1])/2
             new_y = int(new_y)
-
         else:
             new_y = self.position[1]
         
         if [new_x, new_y] == self.position:
-            return
+            self.move_to(env, new_x, new_y)
+        else:
+            if env.is_free(new_x, new_y) == True:
+                self.move_to(env, new_x, new_y, m = 1)
+            else:
+                target_position = self.find_nearest_free(env, [new_x, new_y])
+                if target_position == self.position:
+                    self.move_to(env, target_position[0], target_position[1])
+                else:
+                    #print('check on value = ', env.get_value(new_x, new_y))
+                    self.move_to(env,target_position[0], target_position[1], m = 1)
 
-        if env.is_free(new_x, new_y) == False:
-        # if the designed position is already occupied the ant looks for a new one
-            target_position = self.find_nearest_free(env, [new_x, new_y])
-            self.move_to_target(env, target_position)
+    def move_to(self, env, x, y, m=0):
 
-            # added this return statement to make sure that the ant does not moves 2 times
-            # or delete himself without reason
-            return
+        if m == 1:
+            old_position = self.position
+            self.position = [x, y]
+            env.set_value(x, y, 2) # move ant 
+            env.remove_element(old_position[0], old_position[1])
         
-
-        old_position = self.position
-        self.position = [new_x, new_y]
-        env.remove_element(old_position[0], old_position[1])
-        env.set_value(new_x, new_y, 2) # move ant 
-        
-    def move_or_act(self, env, dangers):
+    def move_or_act(self, env, action, dangers):
 
         # pick the action
-        action = self.pick_action(env)
+        #action = self.pick_action(env)
         
         env_size = env.get_size()
         # if the ants decide to move randomly
@@ -142,7 +143,7 @@ class Ant(object):
             target_position = [x,y]
             
             # moves on it
-            self.move_to_target(env, target_position)
+            self.set_movement(env, target_position)
         
         # attack/eat scenario
         else:
@@ -157,7 +158,7 @@ class Ant(object):
 
             # if no it moves towards the target
             else:
-                self.move_to_target(env, target_position)
+                self.set_movement(env, target_position)
     
     # look at the close positions to see what's in it
     def get_surrounding(self, env):
@@ -217,10 +218,12 @@ class Ant(object):
         self.energy = self.energy + damage
         if self.energy <= 0:
             env.remove_element(self.position[0], self.position[1])
-            return self
+            return False
+        return True
+        
     
     # TOTALLY CHANGED
-    def find_nearest_free(self, env, target_position, end=False):
+    def find_nearest_free(self, env, target_position):
     # if no positions are free this function returns self.position and the ant does not move
     # also added a check for make sure that the ants doe not try to move out of the env
 
@@ -230,10 +233,12 @@ class Ant(object):
         if target_position[0] == self.position[0]:
             if (target_position[0]+1) < env_size-1:
                 if env.is_free((target_position[0]+1), target_position[1]):
+                    #print(env.get_value((target_position[0]+1), target_position[1]))
                     target_position = [(target_position[0]+1), target_position[1]]
                     return target_position
             if (target_position[0]-1) > 0:
                 if env.is_free((target_position[0]-1), target_position[1]):
+                    #print(env.get_value((target_position[0]-1), target_position[1]))
                     target_position = [(target_position[0]-1), target_position[1]]
                     return target_position
             else:

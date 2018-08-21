@@ -27,18 +27,15 @@ if __name__ == "__main__":
 
     while True:
         try:
-            #win = curses.initscr()
-            #win.clear()
-            #win.addstr(env.to_string())
-            #win.refresh
+            win = curses.initscr()
+            win.clear()
+            win.addstr(env.to_string())
+            win.refresh
             time.sleep(1)
             for ant in colony:
-
-                # HO INSERITO QUESTA FUNZIONE DIRETTAMENTE IN MOVE_OR_ACT DELLE ANT
-                #action = ant.pick_action(env)
-                
-                ant.move_or_act(env, dangers)
-                #ant.get_damage(env)   <---- va tolto il commento, ora lo tengo per comodita'
+                action = ant.pick_action(env)                
+                ant.move_or_act(env, action, dangers)
+                #ant.get_damage(env, damage = 0)
             for danger in dangers:
                 if not danger.attack_ant(env, colony):
                     danger.move_random(env)
