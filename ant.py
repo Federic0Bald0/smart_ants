@@ -12,7 +12,7 @@ class Ant(object):
     
     def __init__(self, env, genetic_inh=None):
         
-        self.energy = 20
+        self.energy = 100
         self.food_harvest = 0
         self.enemy_killed = 0
         self.status = 2
@@ -71,9 +71,9 @@ class Ant(object):
         eat = max(eat, 0)
 
         # if both action have low value the ant move at random
-        if max(attack, eat, 100) == attack:
+        if max(attack, 1000, 1) == attack:
             action = 0
-        elif  max(attack, eat, 100) == eat:
+        elif  max(attack, 1000, 1) == 1000:
             action = 1
         else:
             action = 2
@@ -114,7 +114,6 @@ class Ant(object):
                 if target_position == self.position:
                     self.move_to(env, target_position[0], target_position[1])
                 else:
-                    #print('check on value = ', env.get_value(new_x, new_y))
                     self.move_to(env,target_position[0], target_position[1], m = 1)
 
     def move_to(self, env, x, y, m=0):
@@ -152,9 +151,10 @@ class Ant(object):
             target_position = self.get_target(env, action)
 
             # if the target is near enough the ant move or eat
-            if (abs(self.position[0] - target_position[0]) - 1) and (abs(self.position[1] - target_position[1]) - 1)\
+            if (abs(self.position[0] - target_position[0]) - 1) <= 0 \
+                and (abs(self.position[1] - target_position[1]) - 1) <= 0\
                 and (self.position != target_position):
-               self.act(env, target_position, action, dangers)
+                self.act(env, target_position, action, dangers)
 
             # if no it moves towards the target
             else:
@@ -189,11 +189,10 @@ class Ant(object):
 
         # eat            
         else:
-
             # rise his energy and his fitness parameter
             self.rise_energy(10)
             self.food_harvest += 1
-            env.remove_element(x, y)
+            env.remove_element(target_position[0], target_position[1])
 
     # rileva la posizione del suo target in base all'azione che vuole effettuare
     def get_target(self, env, action):
@@ -215,7 +214,7 @@ class Ant(object):
     
     # funzione per il calcolo dei danni 
     def get_damage(self, env, damage= -1):
-        self.energy = self.energy + damage
+        self.energy = self.energy + 0 #damage
         if self.energy <= 0:
             env.remove_element(self.position[0], self.position[1])
             return False
@@ -233,12 +232,10 @@ class Ant(object):
         if target_position[0] == self.position[0]:
             if (target_position[0]+1) < env_size-1:
                 if env.is_free((target_position[0]+1), target_position[1]):
-                    #print(env.get_value((target_position[0]+1), target_position[1]))
                     target_position = [(target_position[0]+1), target_position[1]]
                     return target_position
             if (target_position[0]-1) > 0:
                 if env.is_free((target_position[0]-1), target_position[1]):
-                    #print(env.get_value((target_position[0]-1), target_position[1]))
                     target_position = [(target_position[0]-1), target_position[1]]
                     return target_position
             else:
