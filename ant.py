@@ -24,6 +24,11 @@ class Ant(object):
         """
         env_size = env.get_size()
         # choose randomly position in environment
+
+        #JUST A CHECK
+        self.id = random.randint(0, 100000)
+
+
         while True:
             x = random.randint(0, env_size-1)
             y = random.randint(0, env_size-1)
@@ -66,52 +71,69 @@ class Ant(object):
         attack = max(attack, 0)
         eat = max(eat, 0)
 
-        #DEPRECATED tensorflow functions
-        # attack = tf.nn.relu(tf.matmul(tf.cast(input, tf.float32), self.synapses[0]))[0]
-        # eat = tf.nn.relu(tf.matmul(tf.cast(input, tf.float32), tf.transpose(self.synapses[1])))[0]
-
         # if both action have low value the ant move at random
-        action = tf.argmax([attack, eat, 0.2])        
+        if max(attack, eat, 100) == attack:
+            action = 0
+        elif  max(attack, eat, 100) == eat:
+            action = 1
+        else:
+            action = 2
         self.status = action
 
         return action
     
     
-    def move_to_target(self, env, target_position): 
+    def move_to_target(self, env, target_position):
 
+        # if the ant should not move this function just does nothing
+        if target_position == self.position:
+            return
         # set the direction of the incoming movement, X axis
 
         # this if avoid dividing for 0
-        if abs(self.position[0] - target_position[0]) != 0:
-            new_x = self.position[0] + (abs(self.position[0] - target_position[0]) - 1)/(self.position[0] - target_position[0])
+        if (abs(self.position[0] - target_position[0]) - 1) > 0:
+            new_x = self.position[0] + (target_position[0] - self.position[0])/2
+            new_x = int(new_x)
 
         else:
             new_x = self.position[0]
         
         # Y axis
-        if abs(self.position[1] - target_position[1]) != 0:
-            new_y = self.position[1] + (abs(self.position[1] - target_position[1]) - 1)/(self.position[1] - target_position[1])
+        if (abs(self.position[1] - target_position[1]) - 1) > 0:
+            new_y = self.position[1] + (target_position[1] - self.position[1])/2
+            new_y = int(new_y)
 
         else:
             new_y = self.position[1]
         
-        if env.is_free(target_position[0], target_position[1]) == False:
-        # if the designed position is already occupied the ant look for a new one
-            target_position = self.find_nearest_free(env, target_position)
+        if [new_x, new_y] == self.position:
+            return
+
+        if env.is_free(new_x, new_y) == False:
+        # if the designed position is already occupied the ant looks for a new one
+            target_position = self.find_nearest_free(env, [new_x, new_y])
             self.move_to_target(env, target_position)
+
+            # added this return statement to make sure that the ant does not moves 2 times
+            # or delete himself without reason
+            return
         
+
         old_position = self.position
         self.position = [new_x, new_y]
         env.remove_element(old_position[0], old_position[1])
         env.set_value(new_x, new_y, 2) # move ant 
         
-    def move_or_act(self, env, action, dangers):
+    def move_or_act(self, env, dangers):
 
+        # pick the action
+        action = self.pick_action(env)
+        
+        env_size = env.get_size()
         # if the ants decide to move randomly
         if action == 2:
             
             # choose the new position
-            
             x = -1
             while ((x<0) or ((x > env_size-1) or (y<0) or (y > env_size-1))):
                 x = self.position[0] + random.randint(0, 3) - 1
@@ -120,7 +142,7 @@ class Ant(object):
             target_position = [x,y]
             
             # moves on it
-            self.move_to_target(target_position)
+            self.move_to_target(env, target_position)
         
         # attack/eat scenario
         else:
@@ -182,67 +204,64 @@ class Ant(object):
                     x = (self.position[0]-1-k+i)
                     y = (self.position[1]-1-k+j)
                 
-                    if not ((x<0) or ((x > env_size-1) or (y<0) or (y > env_size-1))):
+                    if not ((x<0) or (x > env_size-1) or (y<0) or (y > env_size-1)):                        
 
                         if ((action==0) and (env.get_value(x, y) == -1)) or \
-                             ((action  == 1) and (env.get_value(x, y) == -1)):
-                           
+                             ((action  == 1) and (env.get_value(x, y) == 1)):
                             return(x, y)
         
         return(self.position)
     
     # funzione per il calcolo dei danni 
-    def get_damage(self, env, damage=1):
+    def get_damage(self, env, damage= -1):
         self.energy = self.energy + damage
         if self.energy <= 0:
             env.remove_element(self.position[0], self.position[1])
             return self
     
-    # se la posizione desiderata e' occupata si muove nella prima posizione libera controllando
-    # le posizioni in senso antiorario
-
-    # STA ROBA VA RISCRITTA!!!!!
+    # TOTALLY CHANGED
     def find_nearest_free(self, env, target_position, end=False):
+    # if no positions are free this function returns self.position and the ant does not move
+    # also added a check for make sure that the ants doe not try to move out of the env
 
-        c = 0
-        while end == False and c < 9:
-
-            if target_position[0] < self.position[0]:
-                if target_position[1] <= self.position[1]:
-
-                    target_position[1] = target_position[1] + 1 
-                    end = env.is_free(target_position[0], target_position[1])
-                                                  
-                else:
-                    target_position[0] = target_position[0] + 1
-                    end = env.is_free(target_position[0], target_position[1])
-
-            if target_position[0] == self.position[0]:
-                if target_position[1] < self.position[1]:
-
-                    target_position[0] = target_position[0] - 1 
-                    end = env.is_free(target_position[0], target_position[1])
-                
-                else:
-
-                    target_position[0] = target_position[0] + 1 
-                    end = env.is_free(target_position[0], target_position[1])
-            
-            if target_position[0] > self.position[0]:
-                if target_position[1] >= self.position[1]:
-
-                    target_position[1] = target_position[1] - 1 
-                    end = env.is_free(target_position[0], target_position[1])
-                
-                else:
-
-                    target_position[0] = target_position[0] - 1 
-                    end = env.is_free(target_position[0], target_position[1])
-
-        if c > 8:
-            target_position = self.position
+        # if X axis is the same the ant looks for the two closest position along the X axis
+        env_size = env.get_size()
         
-        return target_position
+        if target_position[0] == self.position[0]:
+            if (target_position[0]+1) < env_size-1:
+                if env.is_free((target_position[0]+1), target_position[1]):
+                    target_position = [(target_position[0]+1), target_position[1]]
+                    return target_position
+            if (target_position[0]-1) > 0:
+                if env.is_free((target_position[0]-1), target_position[1]):
+                    target_position = [(target_position[0]-1), target_position[1]]
+                    return target_position
+            else:
+                return self.position
+        
+        # if Y axis is the same the ant looks for the two closest position along the X axis
+        elif target_position[1] == self.position[1]:
+            if (target_position[1]+1) < env_size-1:
+                if env.is_free(target_position[0], (target_position[1]+1)):
+                    target_position = [target_position[0], (target_position[1]+1)]
+                    return target_position
+            if (target_position[1]-1) > 0:
+                if env.is_free(target_position[0], (target_position[1]-1)):
+                    target_position = [target_position[0], (target_position[1]-1)]
+                    return target_position
+            else:
+                return self.position
+            
+        # if the ant wants to move in a corner it looks for the two position near the corner
+        else:
+            if env.is_free(self.position[0], target_position[1]):
+                target_position = [self.position[0], target_position[1]]
+                return target_position
+            elif env.is_free(target_position[0], self.position[1]):
+                target_position = [target_position[0], self.position[1]]
+                return target_position
+            else: return self.position
+        return self.position
 
     # rise current energy level
     def rise_energy(self, energy):

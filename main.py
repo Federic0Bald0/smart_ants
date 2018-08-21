@@ -24,17 +24,21 @@ if __name__ == "__main__":
     colony = []
     for i in range(colony_size):
         colony.append(Ant(env))
+
     while True:
         try:
-            print('ciao')
-            # win = curses.initscr()
-            # win.clear()
-            # win.addstr(env.to_string())
-            # win.refresh
+            #win = curses.initscr()
+            #win.clear()
+            #win.addstr(env.to_string())
+            #win.refresh
             time.sleep(1)
             for ant in colony:
-                action = ant.pick_action(env)
-                ant.move_or_act(env, action, dangers)
+
+                # HO INSERITO QUESTA FUNZIONE DIRETTAMENTE IN MOVE_OR_ACT DELLE ANT
+                #action = ant.pick_action(env)
+                
+                ant.move_or_act(env, dangers)
+                #ant.get_damage(env)   <---- va tolto il commento, ora lo tengo per comodita'
             for danger in dangers:
                 if not danger.attack_ant(env, colony):
                     danger.move_random(env)
