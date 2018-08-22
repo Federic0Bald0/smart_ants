@@ -7,7 +7,6 @@ class Environment(object):
 
     def __init__(self, size):
         self.size = size
-        self.dangers = []
         # enviromment
         self.env = np.zeros([self.size, self.size])
         n_food = self.size
@@ -16,24 +15,33 @@ class Environment(object):
         while k < n_food:
             x = random.randint(0, size-1)
             y = random.randint(0, size-1)
-            
-            if self.env[x][y] == 0: # if location empty
+            if self.env[x][y] == 0: 
+                # if location empty
                 self.env[x][y] = 1
                 k += 1 
     
     def get_size(self):
+        # returns size of the environment
         return self.size
 
     def is_free(self, x, y):
+        # the location in the environment 
+        # is free ?
         return self.env[x][y] == 0
 
     def remove_element(self, x, y):
+        # remove an element 
+        # from the environment 
         self.env[x][y] = 0
 
     def get_value(self, x, y):
+        # get value of a specific cell 
+        # in the environment 
         return self.env[x][y]
 
     def set_value(self, x, y, v):
+        # set value of a specific cell 
+        # in the environment 
         self.env[x][y] = v
 
     def to_string(self):

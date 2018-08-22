@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # TODO get arguments form stdin 
 
     # build environment 
-    env_size = 10
+    env_size = 30
     env = Environment(env_size)
     # create danger
     n_danger = 10
@@ -27,15 +27,20 @@ if __name__ == "__main__":
 
     while True:
         try:
-            win = curses.initscr()
-            win.clear()
-            win.addstr(env.to_string())
-            win.refresh
+            # win = curses.initscr()
+            # win.clear()
+            # win.addstr(env.to_string())
+            # win.refresh
             time.sleep(1)
             for ant in colony:
-                action = ant.pick_action(env)                
+                action = ant.pick_action(env)
+                # if action == 0:
+                #     print 'attack'
+                # elif action == 2:
+                #     print 'move'
+                # elif action == 1:
+                #     print 'eat'         
                 ant.move_or_act(env, action, dangers)
-                #ant.get_damage(env, damage = 0)
             for danger in dangers:
                 if not danger.attack_ant(env, colony):
                     danger.move_random(env)
