@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ants import Ant
 import random
+import operator
 import numpy as np
+from ant import Ant
 
 def fitness(ant):
     energy = ant.energy
@@ -11,26 +12,26 @@ def fitness(ant):
     fitness = energy/10 + harvest*10 + killings*10
 
 #TODO CHECK THIS Fx
-def grade_antts(colony):
+def grade_ants(colony):
     antsPerf = {}
     for ant in colony:
         antsPerf[ant] = fitness(ant)
-    
     return sorted(antsPerf.items(), key = operator.itemgetter(1), reverse=True)
 
-def selectFromPopulation(colony, best_sample, lucky_few):
-	nextGen = []
-	for i in range(best_sample):
-		nextGen.append(populationSorted[i][0])
-	for i in range(lucky_few):
-		nextGen.append(random.choice(populationSorted)[0])
-	random.shuffle(nextGe)
-	return nextGen
+def select_from_population(colony, best_sample, lucky_few):
+    nextGen = []
+    population_sorted = grade_ants(colony)
+    for i in range(best_sample):
+        nextGen.append(population_sorted[i])
+    for i in range(lucky_few):
+        nextGen.append(random.choice(population_sorted))
+    random.shuffle(nextGen)
+    return nextGen
 
-def selectGenes(ant1, ant2):
+def select_genes(ant1, ant2):
 
-    father_genes = ant1.synapses
-    mother_genes = ant2.synapses
+    father_genes = ant1[0].get_synapses()
+    mother_genes = ant2[0].get_synapses()
     gen_inheritance = []
     for i in range (len(father_genes)):
         if (int(100 * random.random()) < 50):
@@ -41,28 +42,29 @@ def selectGenes(ant1, ant2):
     
     return gen_inheritance
 
-def createChildren(breeders, number_of_child):
-	nextColony = []
+def create_children(breeders, env, number_of_child):
+    nextColony = []
     colony_shuffled = np.random.shuffle(np.arange(len(breeders)))
     for i in range(len(breeders)/2):
-		for j in range(number_of_child):
-            nextColony.append(Ant(genetic_inh = selectGenes(breeders[2*colony_shuffled[i]], (breeders[2*colony_shuffled[i]+1]))))
+        for j in range(number_of_child):
+            synapses = select_genes(breeders[i], breeders[len(breeders) - 1 - i])
+            nextColony.append(Ant(env, genetic_inh=synapses))
 	return nextColony
 
-def mutategenes(ant, mutation_prob):
-    ant_genes = ant.synapses
+def mutate_genes(ant, mutation_prob):
+    ant_genes = ant.get_synapses()
     mutated_genes = []
     for gene in ant_genes:
         if (int(100 * random.random()) < mutation_prob):
-            mutated_genes.append(ant_genes[gene]*random.random()/random.random())
+            mutated_genes.append(ant_genes[gene]* random.uniform(0, 1))
         elif (int(100 * random.random()) > 100 - mutation_prob):
-            mutated_genes.append(ant_genes[gene]+ random.random()*10 - random.random()*10)
+            mutated_genes.append(ant_genes[gene]+ random.uniform()*10 - random.uniform()*10)
         else:
             mutated_genes.append(ant_genes[gene])
     return mutated_genes
 
-def mutatecolony(Colony, chance_of_mutation):
-	for i in range(len(Colony)):
-		if random.random() * 100 < chance_of_mutation:
-			colony[i] = Ant(genetic_inh=mutategenes(colony[i], mutation_prob))
-	return colony
+def mutate_colony(colony, mutation_prob):
+    for i in range(len(colony)):
+        if random.random() * 100 < mutation_prob:
+            colony[i] = Ant(genetic_inh=mutate_genes(colony[i], mutation_prob))
+    return colony

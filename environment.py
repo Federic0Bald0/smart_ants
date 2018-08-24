@@ -41,17 +41,17 @@ class Environment(object):
 
     def set_value(self, x, y, v):
         # set value of a specific cell 
-        # in the environment 
+        # in the environment
         self.env[x][y] = v
 
-    def to_string(self):
+    def to_string(self, generation):
         # build string environment
         """
         <> -> danger
         *  -> food
         ++ -> ant 
         """
-        env_str = ""
+        env_str = "Generation : " + str(generation) + '\n'
         for i in range(self.size):
             env_str += '|'
             for j in range(self.size):

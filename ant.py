@@ -44,6 +44,10 @@ class Ant(object):
         # 2 -> moving
         return self.status
 
+    def get_synapses(self):
+        # returns weigths NN
+        return self.synapses
+
 
     def set_status(self, status):
         # set a specific value for 
@@ -102,9 +106,9 @@ class Ant(object):
         """ TODO SPIEGA, perche max attack, 1000, 1 ? 
             Tra 1000 e 1 il massimo sarà sempre 1000
         """
-        if max(attack, 1000, 1) == attack:
+        if max(attack, eat, 1) == attack:
             action = 0
-        elif max(attack, 1000, 1) == 1000:
+        elif max(attack, eat, 1) == eat:
             action = 1
         else:
             action = 2
@@ -117,59 +121,38 @@ class Ant(object):
         # function sets direction of the incoming movement
 
         # set the direction of the incoming movement, X axis
-        if ((abs(self.position[0] - target_position[0])) == 1) and \
-           ((abs(self.position[1] - target_position[1])) == 1):
-           if self.get_status() != 2:
-               self.move_or_act(env, self.get_status(), target_position, dangers)
-        elif (abs(self.position[0] - target_position[0])) == 1:
+
+        if (abs(self.position[0] - target_position[0])) == 1:
             new_x = self.position[0] + (target_position[0] - self.position[0])
             new_x = int(new_x)        
         elif (abs(self.position[0] - target_position[0])) == 2:
             new_x = self.position[0] + (target_position[0] - self.position[0])/2
-            new_x = int(new_x)  
+            new_x = int(new_x)
+        else:
+            new_x = self.position[0]
+        
         # Y axis
-        elif (abs(self.position[1] - target_position[1])) == 1:
+        if (abs(self.position[1] - target_position[1])) == 1:
             new_y = self.position[1] + (target_position[1] - self.position[1])
             new_y = int(new_y)
         elif (abs(self.position[1] - target_position[1])) == 2:
             new_y = self.position[1] + (target_position[1] - self.position[1])/2
             new_y = int(new_y)
         else:
-            """ TODO SPIEGA, la formica è sul target ?"""
             new_y = self.position[1]
-            new_x = self.position[0] 
         
-        # if [new_x, new_y] == self.position:
-        #     self.move_to(env, new_x, new_y)
-        # else:
-        #     if env.is_free(new_x, new_y) == True:
-        #         self.move_to(env, new_x, new_y, m=1)
-        #     else:
-        #         target_position = self.find_nearest_free(env, [new_x, new_y])
-        #         if target_position == self.position:
-        #             self.move_to(env, target_position[0], target_position[1])
-        #         else:
-        #             self.move_to(env,target_position[0], target_position[1], m = 1)
+        if [new_x, new_y] != self.position:
+            if env.is_free(new_x, new_y) == True:
+                self.move_to(env, new_x, new_y)
+            else:
+                target_position = self.find_nearest_free(env, [new_x, new_y])
+                if target_position != self.position:
+                    self.move_to(env,target_position[0], target_position[1])
 
-        if not env.is_free(new_x, new_y):
-            new_position = self.find_nearest_free(env, target_position)
-            self.move_to(env, new_position[0], new_position[1])
-        elif (target_position != self.position):
-            self.move_to(env, new_position[0], new_position[1])
-
-
-    def move_to(self, env, x, y, m=0):
-        """ TODO SPIEGA, dato che con 
-            m=0 non fa nulla a che serve il 
-            parametro m?
-        """
+    def move_to(self, env, x, y):
         env.remove_element(self.position[0], self.position[1])
-        print self.position
-        print x, y
-        print 
         env.set_value(x, y, 2)
-        self.set_position(x, y)
-            
+        self.position = [x, y]
          
     def move_or_act(self, env, action, dangers):
         # pick the action
@@ -237,6 +220,7 @@ class Ant(object):
             self.rise_energy(10)
             self.food_harvest += 1
             env.remove_element(target_position[0], target_position[1])
+            # print env.get_value(target_positon[0], target_position[1])
 
 
     def get_target(self, env, action):
@@ -262,6 +246,7 @@ class Ant(object):
         self.energy = self.energy + (damage * 10)
         if self.energy <= 0:
             env.remove_element(self.position[0], self.position[1])
+            del self
             # improve using del self
             return True
         return False

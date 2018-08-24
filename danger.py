@@ -155,8 +155,8 @@ class Danger(object):
                         for ant in colony:
                             ant_position = ant.get_position() 
                             if ant_position == [x, y]:
-                                if self.damage_ant(env, ant):
-                                    colony.remove(ant)
+                                self.damage_ant(env, ant)
+                                    # colony.remove(ant)
                                 return True
         return False
                         
@@ -166,8 +166,7 @@ class Danger(object):
             env.remove_element(self.position[0], self.position[1])
             del self
             return True
-        else:
-            return False
+        return False
             
     
 
