@@ -236,7 +236,7 @@ class Ant(object):
             '''
             in questo if la formica controlla se il bersaglio e' in uno dei quadretti adiacenti ad essa:
             se lo e' effettua l'azione designata
-            ''''
+            '''
             # read the target's location
             target_position = self.get_target(env, action)
             # if the target is near enough the ant move or eat

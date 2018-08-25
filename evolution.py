@@ -28,8 +28,10 @@ def select_from_population(colony, best_sample, lucky_few):
     random.shuffle(nextGen)
     return nextGen
 
+'''
+    In queste funzioni potrebbe essere necessario un reshape delle sinapsi da [2,25] a [50]    
+'''
 def select_genes(ant1, ant2):
-
     father_genes = ant1[0].get_synapses()
     mother_genes = ant2[0].get_synapses()
     gen_inheritance = []
@@ -56,13 +58,15 @@ def mutate_genes(ant, mutation_prob):
     mutated_genes = []
     for gene in ant_genes:
         if (int(100 * random.random()) < mutation_prob):
-            mutated_genes.append(ant_genes[gene]* random.uniform(0, 1))
+            mutated_genes.append(gene* random.uniform(0, 1))
         elif (int(100 * random.random()) > 100 - mutation_prob):
-            mutated_genes.append(ant_genes[gene]+ random.uniform()*10 - random.uniform()*10)
+            mutated_genes.append(gene+ random.uniform()*10 - random.uniform()*10)
         else:
-            mutated_genes.append(ant_genes[gene])
+            mutated_genes.append(gene)
     return mutated_genes
 
+# alla linea 70 va passato anche env come argomento della:
+# colony[i] = Ant(genetic_inh=mutate_genes(colony[i], mutation_prob))
 def mutate_colony(colony, mutation_prob):
     for i in range(len(colony)):
         if random.random() * 100 < mutation_prob:

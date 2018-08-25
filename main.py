@@ -44,6 +44,7 @@ if __name__ == "__main__":
                         danger.move_random(env)
                         danger.get_surrounding_ants(env)
                 colony = [ant for ant in colony if ant is not None]
+                # sicuro che applicare queste funzioni ogni chiamata del ciclo for sia corretto o e' solo per il testing?
                 selected = evolution.select_from_population(colony, (len(colony)/2) - 1, 1)
                 children = evolution.create_children(selected, env, (len(colony)/2) - 1)
                 colony = evolution.mutate_colony(children, 30)
