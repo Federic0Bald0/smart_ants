@@ -9,7 +9,7 @@ class Ant(object):
     
     def __init__(self, env, genetic_inh=None):
         
-        self.energy = 100
+        self.energy = 50
         self.food_harvest = 0
         self.enemy_killed = 0
         self.status = 2
@@ -34,6 +34,31 @@ class Ant(object):
         else:
             # first generation 
             self.synapses = init_weights([2,25])
+
+    def reset(self, env):
+        # reset values for 
+        # fitness function
+        self.energy = 50
+        self.food_harvest = 0
+        self.enemy_killed = 0
+        self.status = 2
+        env_size = env.get_size()
+        # choose randomly position in environment
+        while True:
+            x = random.randint(0, env_size-1)
+            y = random.randint(0, env_size-1)
+            # position i, j is free
+            if env.is_free(x, y):
+                self.position = [x, y]    
+                env.set_value(x, y, 2)
+                break
+
+    def fitness(self):
+        energy = self.energy
+        killings = self.enemy_killed
+        harvest = self.food_harvest
+        fitness = energy/10 + harvest*10 + killings*10
+        return fitness
 
     def get_status(self):
         # status defines what ant
@@ -281,7 +306,7 @@ class Ant(object):
                 self.set_status(0)
             for danger in dangers:
                 if target_position == danger.get_position():
-                    danger.get_damage(env)
+                    danger.get_damage(env, dangers)
         # eat            
         else:
             # status needs to be coherent with the action
@@ -310,15 +335,14 @@ class Ant(object):
         return(self.position)
     
 
-    def get_damage(self, env, damage=0):
+    def get_damage(self, env, colony, damage=0):
         # given the damage the function
         # updates the energy of the ant
         # returns true if it's dead
         self.energy = self.energy + (damage * 10)
         if self.energy <= 0:
             env.remove_element(self.position[0], self.position[1])
-            del self
-            # improve using del self
+            colony.remove(self)
             return True
         return False
         

@@ -138,9 +138,9 @@ class Danger(object):
                     self.position = [x-1, y+1]
 
 
-    def damage_ant(self, env, ant):
+    def damage_ant(self, env, ant, colony):
         # if we are close to an ant it damages it 
-        return ant.get_damage(env, damage=self.get_power()*(10))
+        return ant.get_damage(env, colony, damage=self.get_power()*(10))
 
 
     def attack_ant(self, env, colony):
@@ -155,16 +155,16 @@ class Danger(object):
                         for ant in colony:
                             ant_position = ant.get_position() 
                             if ant_position == [x, y]:
-                                self.damage_ant(env, ant)
+                                self.damage_ant(env, ant, colony)
                                     # colony.remove(ant)
                                 return True
         return False
                         
 
-    def get_damage(self, env):
+    def get_damage(self, env, dangers):
         if (self.power / 2) <= self.nn_ant:
             env.remove_element(self.position[0], self.position[1])
-            del self
+            dangers.remove(self)
             return True
         return False
             
