@@ -28,7 +28,7 @@ class Ant(object):
                 env.set_value(x, y, 2)
                 break
         # weight inzialization                                                         
-        if genetic_inh:
+        if np.any(genetic_inh):
             # child
             self.synapses = genetic_inh
         else:
