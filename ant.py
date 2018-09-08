@@ -9,7 +9,7 @@ class Ant(object):
     
     def __init__(self, env, genetic_inh=None):
         
-        self.energy = 50
+        self.energy = 100
         self.food_harvest = 0
         self.enemy_killed = 0
         self.status = 2
@@ -300,29 +300,29 @@ class Ant(object):
     def act(self, env, target_position, action, dangers):
         # performes action: attack or eat
         # attack
+        '''
+        status is now set at 2 and does not change since now the attack action
+        acts differently.
+        For the eat function there are no changes, but the self.status variable doesn't
+        need to change
+        '''
         if action == 0:
-            # status needs to be coherent with the action
-            if self.get_status() != 0:
-                self.set_status(0)
             for danger in dangers:
                 if target_position == danger.get_position():
-                    danger.get_damage(env, dangers)
+                    danger.get_aggro()
         # eat            
         else:
             # status needs to be coherent with the action
-            if self.get_status() != 1:
-                self.set_status(1)
             # rise its energy and his fitness parameter
             self.rise_energy(10)
             self.food_harvest += 1
             env.remove_element(target_position[0], target_position[1])
             # print env.get_value(target_positon[0], target_position[1])
 
-
     def get_target(self, env, action):
         # returns position of the nearest target
         env_size = env.get_size()
-        for k in range (1):
+        for k in range (2):
             for i in range(3+(2*k)):
                 for j in range(3+(2*k)):
                     x = (self.position[0]-1-k+i)
@@ -330,7 +330,7 @@ class Ant(object):
                     if not ((x<0) or (x > env_size-1) or (y<0) or (y > env_size-1)):                        
                         if ((action==0) and (env.get_value(x, y) == -1)) or \
                              ((action  == 1) and (env.get_value(x, y) == 1)):
-                            return(x, y)
+                            return([x, y])
         
         return(self.position)
     
@@ -482,5 +482,32 @@ def init_weights(shape):
 
 
 
+
+'''
+
+OLD ONE
+
+    def act(self, env, target_position, action, dangers):
+        # performes action: attack or eat
+        # attack
+        if action == 0:
+            # status needs to be coherent with the action
+            if self.get_status() != 0:
+                self.set_status(0)
+            for danger in dangers:
+                if target_position == danger.get_position():
+                    danger.get_damage(env, dangers)
+        # eat            
+        else:
+            # status needs to be coherent with the action
+            if self.get_status() != 1:
+                self.set_status(1)
+            # rise its energy and his fitness parameter
+            self.rise_energy(10)
+            self.food_harvest += 1
+            env.remove_element(target_position[0], target_position[1])
+            # print env.get_value(target_positon[0], target_position[1])
+
+'''
 
         

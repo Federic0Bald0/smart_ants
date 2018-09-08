@@ -15,8 +15,8 @@ def grade_ants(colony):
 def select_from_population(colony, best_sample, lucky_few):
     nextGen = []
     population_sorted = grade_ants(colony)
-    print ('BEST ANT FITNESS SCORE:')
-    print (population_sorted[0][0].fitness())
+    #print ('BEST ANT FITNESS SCORE:')
+    #print (population_sorted[0][0].fitness())
     for i in range(best_sample):
         nextGen.append(population_sorted[i])
     for i in range(lucky_few):
