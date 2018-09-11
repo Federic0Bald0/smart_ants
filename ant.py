@@ -309,7 +309,7 @@ class Ant(object):
         if action == 0:
             for danger in dangers:
                 if target_position == danger.get_position():
-                    danger.get_aggro()
+                    danger.add_attacking_ant()
         # eat            
         else:
             # status needs to be coherent with the action

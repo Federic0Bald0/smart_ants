@@ -5,7 +5,7 @@ import random
 
 class Danger(object):
 
-    def __init__(self, env):
+    def __init__(self, env, base_power = 2):
 
         env_size = env.get_size()
         # position in env
@@ -19,8 +19,8 @@ class Danger(object):
         # number ants close to the danger
         self.nn_ant = 0
         self.get_surrounding_ants(env)
-        # power danger
-        self.power = - random.randint(1, 7)
+        # power danger  
+        self.power = - random.randint(1, base_power)
 
 
     def get_position(self):
@@ -36,15 +36,15 @@ class Danger(object):
     
     '''
     added this
-    Now the ants call this function (get_aggro) to attack enemies
+    Now the ants call this function (add_attacking_ant) to attack enemies
     the nn_ant value increases by 1 for each attacking ant nearby
     but it is reset at 0 at the end of each turn
     '''
 
-    def get_aggro(self):
-         self.nn_ant += 1
+    def add_attacking_ant(self):
+        self.nn_ant += 1
         
-    def reset_aggro(self):
+    def reset_attacking_ants(self):
         self.nn_ant = 0
 
     '''
