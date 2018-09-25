@@ -22,6 +22,7 @@ if __name__ == "__main__":
         <number_dangers> \
         <power_dangers maximum power> \
         <turns>'
+        # TODO mancano parametri, tipo numero di figli, numero selezionati 
         print 
     else:
         env_size = int(sys.argv[1])
