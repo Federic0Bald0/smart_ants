@@ -49,12 +49,13 @@ if __name__ == "__main__":
             try:
                 for i in range(turns):
 
-                    if gen > 5000:
+                    if gen > 0:
                         win = curses.initscr()
                         win.clear()
                         win.addstr(env.to_string(gen))
                         win.addstr('Turno : ' + str(i))
-                        win.addstr('gen : ' + str(gen))
+                        win.addstr('\n')
+                        win.addstr('Generation : ' + str(gen))
                         win.refresh()
                         time.sleep(0.1)
 
@@ -62,12 +63,13 @@ if __name__ == "__main__":
                         action = ant.pick_action(env)      
                         ant.move_or_act(env, action, dangers)
                     
-                    if gen > 5000:
+                    if gen > 0:
                         win = curses.initscr()
                         win.clear()
                         win.addstr(env.to_string(gen))
                         win.addstr('Turno : ' + str(i))
-                        win.addstr('gen : ' + str(gen))
+                        win.addstr('\n')
+                        win.addstr('Generation : ' + str(gen))
                         win.refresh()
                         time.sleep(0.1)
                     
