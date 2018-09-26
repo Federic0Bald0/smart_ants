@@ -12,7 +12,7 @@ from environment import Environment
 
 if __name__ == "__main__":
     
-    if len(sys.argv) != 8:
+    if len(sys.argv) != 9:
         print
         print 'Usage: python main.py \
         <size_environment> \
@@ -21,7 +21,8 @@ if __name__ == "__main__":
         <power_ants higher than zero> \
         <number_dangers> \
         <power_dangers maximum power> \
-        <turns>'
+        <turns> \
+        <mode>'
         # TODO mancano parametri, tipo numero di figli, numero selezionati 
         print 
     else:
@@ -32,6 +33,7 @@ if __name__ == "__main__":
         n_danger = int(sys.argv[5])
         danger_power = int(sys.argv[6])
         turns = int(sys.argv[7])
+        mode = int(sys.argv[8])
         # build environment 
         env = Environment(env_size)
         # create danger
@@ -41,28 +43,33 @@ if __name__ == "__main__":
         # create ants
         colony = []
         for i in range(colony_size):
-            colony.append(Ant(env))
+            colony.append(Ant(env, mode))
         gen = 0
         while True:
             try:
                 for i in range(turns):
-                    # win = curses.initscr()
-                    # win.clear()
-                    # win.addstr(env.to_string(gen))
-                    # win.addstr('Turno : ' + str(i))
-                    # win.refresh()
-                    time.sleep(0.001)
+
+                    if gen > 5000:
+                        win = curses.initscr()
+                        win.clear()
+                        win.addstr(env.to_string(gen))
+                        win.addstr('Turno : ' + str(i))
+                        win.addstr('gen : ' + str(gen))
+                        win.refresh()
+                        time.sleep(0.1)
 
                     for ant in colony:
                         action = ant.pick_action(env)      
                         ant.move_or_act(env, action, dangers)
-
-                    # win = curses.initscr()
-                    # win.clear()
-                    # win.addstr(env.to_string(gen))
-                    # win.addstr('Turno : ' + str(i))
-                    # win.refresh()
-                    # time.sleep(0.5)
+                    
+                    if gen > 5000:
+                        win = curses.initscr()
+                        win.clear()
+                        win.addstr(env.to_string(gen))
+                        win.addstr('Turno : ' + str(i))
+                        win.addstr('gen : ' + str(gen))
+                        win.refresh()
+                        time.sleep(0.1)
                     
                     for danger in dangers:                    
                         if not danger.get_damage(env, dangers):
@@ -82,12 +89,12 @@ if __name__ == "__main__":
                 selected = evolution.select_from_population(colony, (len(colony)/2) - 1, 1)
                 # print ('SELECTED:')
                 # print (len(selected))
-                colony = evolution.create_children(selected, env, colony_size - len(selected))
+                colony = evolution.create_children(selected, env, colony_size - len(selected), mode)
                 # print ('CHILDREN:')
                 # print (len(colony))
-                colony = evolution.mutate_colony(colony, env, 20)
+                colony = evolution.mutate_colony(colony, env, 20, mode)
                 for ant in selected:
-                    ant[0].reset(env)
+                    ant[0].reset(env, mode)
                     colony.append(ant[0])
                 dangers = []
                 for i in range(n_danger):
