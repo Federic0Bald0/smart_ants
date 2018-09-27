@@ -18,7 +18,6 @@ class Danger(object):
                 break
         # number ants close to the danger
         self.nn_ant = 0
-        self.get_surrounding_ants(env)
         # power danger  
         self.power = - random.randint(1, base_power)
 
@@ -33,13 +32,6 @@ class Danger(object):
         # returns the power
         # of the danger
         return self.power
-    
-    '''
-    added this
-    Now the ants call this function (add_attacking_ant) to attack enemies
-    the nn_ant value increases by 1 for each attacking ant nearby
-    but it is reset at 0 at the end of each turn
-    '''
 
     def add_attacking_ant(self):
         self.nn_ant += 1
@@ -47,26 +39,6 @@ class Danger(object):
     def reset_attacking_ants(self):
         self.nn_ant = 0
 
-    '''
-    end add
-    '''
-    '''
-    this function is deprecated
-    '''
-    # DEPRECATED
-    def get_surrounding_ants(self, env):
-        # check in the surrounding matrix 3X3 
-        # if there are ants
-        # TODO missing check of ant status ???
-        env_size = env.get_size()
-        for i in range(3):
-            for j in range(3):
-                x = (self.position[0]-1+i)
-                y = (self.position[1]-1+j)
-                if not ((x<0) or (x > env_size-1) or \
-                    (y<0) or (y > env_size-1)):
-                        if env.get_value(x, y) == 2:
-                            self.nn_ant += 1
 
 
     def move_random(self, env):
@@ -187,7 +159,5 @@ class Danger(object):
             dangers.remove(self)
             return True
         return False
-
-    
 
     

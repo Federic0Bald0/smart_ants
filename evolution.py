@@ -5,7 +5,6 @@ import operator
 import numpy as np
 from ant import Ant
 
-#TODO CHECK THIS Fx
 def grade_ants(colony):
     antsPerf = {}
     for ant in colony:
@@ -24,24 +23,33 @@ def select_from_population(colony, best_sample, lucky_few):
     random.shuffle(nextGen)
     return nextGen
 
-'''
-    In queste funzioni potrebbe essere necessario un reshape delle sinapsi da [2,25] a [50]    
-'''
+
 def select_genes(ant1, ant2):
-    father_genes = np.reshape(ant1[0].get_synapses(), [-1])
-    mother_genes = np.reshape(ant2[0].get_synapses(), [-1])
+    father_genes = ant1[0].get_brain
+    mother_genes = ant1[0].get_brain
     gen_inheritance = []
 
     for i in range (len(father_genes)):
-        if (int(100 * random.random()) < 50):
-            gen_inheritance.append(father_genes[i])        
-        else:            
-            gen_inheritance.append(mother_genes[i])
-    
-    gen_inheritance = np.reshape(gen_inheritance, [2,25])
+        father_brain_section = np.reshape(father_genes[i], [-1])
+        mother_brain_section = np.reshape(mother_genes[i], [-1])
+        new_brain_section = np.zeros([len(father_brain_section)])
+        for j in range(len(father_brain_section)):
+            if (int(100 * random.random()) < 50):
+                new_brain_section[j] = father_brain_section[j]     
+            else:
+                new_brain_section[i] = mother_brain_section[i]
+        if 1 <= 2:
+            new_brain_section = np.reshape(new_brain_section, [2,3])
+        if 1 == 6:
+            new_brain_section = np.reshape(new_brain_section, [4,9])
+        if 1 == 7:
+            new_brain_section = np.reshape(new_brain_section, [2,3])
+        if 1 == 8:
+            new_brain_section = np.reshape(new_brain_section, [2,8])
+        gen_inheritance.append(new_brain_section)    
     return gen_inheritance
 
-def create_children(breeders, env, number_of_child):
+def create_children(breeders, env, number_of_child, mode = 0):
     nextColony = []
     breeders_indexes = np.arange(len(breeders))
     breeders_indexes_shuffled = np.arange(len(breeders))
@@ -52,49 +60,46 @@ def create_children(breeders, env, number_of_child):
         # each parent can be selected only once
         first_parent_id = breeders_indexes_shuffled[i]
         second_parent_id = breeders_indexes_shuffled[len(breeders_indexes_shuffled) - i - 1]
-        synapses = select_genes(breeders[first_parent_id], breeders[second_parent_id])
-        nextColony.append(Ant(env, genetic_inh=synapses))
+        brain = select_genes(breeders[first_parent_id], breeders[second_parent_id])
+        nextColony.append(Ant(env, mode, genetic_inh=brain))
 
     for j in range(number_of_child - (len(breeders)/2)):
         # if we need more children, we are going to use again some of the old parents
         random_parent = random.choice(breeders_indexes)
-        synapses = select_genes(breeders[random_parent], breeders[len(breeders) - random_parent - 1])
-        nextColony.append(Ant(env, genetic_inh=synapses))
+        brain = select_genes(breeders[random_parent], breeders[len(breeders) - random_parent - 1])
+        nextColony.append(Ant(env, mode, genetic_inh=brain))
     return nextColony
 
 def mutate_genes(ant, mutation_prob):
-    ant_genes = np.reshape(ant.get_synapses(), [-1])
+    ant_brain = ant.get_brain
     mutated_genes = []
-    for gene in ant_genes:
-        if (int(100 * random.random()) < mutation_prob):
-            mutated_genes.append(gene * random.uniform(0, 1))
-        elif (int(100 * random.random()) > 100 - mutation_prob):
-            mutated_genes.append(gene + random.uniform(0, 1)*10 - random.uniform(0, 1)*10)
-        else:
-            mutated_genes.append(gene)
-    mutated_genes = np.reshape(mutated_genes, [2,25])
+    for i in range(len(ant_brain))
+        brain_section = np.reshape(ant_brain[1], [-1])
+        new_brain_section = np.zeros([len(brain_section)])
+        for j in range(len(brain_section)):
+            if (int(100 * random.random()) < mutation_prob):
+                new_brain_section[j] = brain_section[j] * random.uniform(0, 1)
+            elif (int(100 * random.random()) > 100 - mutation_prob):
+                new_brain_section[j] = brain_section[j] + random.uniform(0, 1)*10 - random.uniform(0, 1)*10
+            else:
+                new_brain_section[j] = brain_section[j]
+        if 1 <= 2:
+            new_brain_section = np.reshape(new_brain_section, [2,3])
+        if 1 == 6:
+            new_brain_section = np.reshape(new_brain_section, [4,9])
+        if 1 == 7:
+            new_brain_section = np.reshape(new_brain_section, [2,3])
+        if 1 == 8:
+            new_brain_section = np.reshape(new_brain_section, [2,8])
+        mutated_genes.append(new_brain_section)    
     return mutated_genes
 
-def mutate_colony(colony, env, mutation_prob):
+def mutate_colony(colony, env, mutation_prob, mode = 0):
     for i in range(len(colony)):
+        if random.random() * 100 < mutation_prob:
+            colony[i] = Ant(env, mode, genetic_inh=mutate_genes(colony[i], mutation_prob))
+    return colonye(len(colony)):
         if random.random() * 100 < mutation_prob:
             colony[i] = Ant(env, genetic_inh=mutate_genes(colony[i], mutation_prob))
     return colony
 
-
-
-'''
-OLD AND DEPRECATED
-
-def create_children(breeders, env, number_of_child): # number of child???
-    nextColony = []
-    # la riga immediatamente sotto e' inutile a questo punto
-    breeders_indexes = np.arange(len(breeders))
-    for i in range(len(breeders)/2):
-        for j in range(number_of_child):
-            synapses = select_genes(breeders[i], breeders[len(breeders) - 1 - i]) # 1 (+) (-1)... is this good?
-            # random_parent = random.choice(breeders_indexes)
-            # synapses = select_genes(breeders[random_parent], breeders[len(breeders) - random_parent - 1])
-            nextColony.append(Ant(env, genetic_inh=synapses))
-    return nextColony
-'''
