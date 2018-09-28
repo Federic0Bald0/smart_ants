@@ -7,7 +7,7 @@ import numpy as np
 
 class Ant(object):
     
-    def __init__(self, env, mode = 0, genetic_inh=None):
+    def __init__(self, env, mode = 0, genetic_inh=None, child = 0):
         
         self.energy = 100
         self.food_harvest = 0
@@ -28,24 +28,25 @@ class Ant(object):
                 self.position = [x, y]    
                 env.set_value(x, y, 2)
                 break
-        # weight inzialization                                                         
-        if np.any(genetic_inh):
+        # weight inzialization     
+        self.starting_position = self.position                                                    
+        if child == 1:
             # child
             self.brain = genetic_inh
         else:
             # first generation 
-            self.brain = create_new_brain()
+            self.brain = self.create_new_brain()
 
         
     
     def create_new_brain(self):
 
         brain = []
-        sensors_outer = init_weights([2,3])
+        sensors_outer = init_weights([3,2])
         brain.append(sensors_outer)
-        sensors_central = init_weights([2,3])
+        sensors_central = init_weights([3,2])
         brain.append(sensors_central)
-        sensors_inner = init_weights([2,3])
+        sensors_inner = init_weights([3,2])
         brain.append(sensors_inner)
         priority_outer = init_weights([2])
         brain.append(priority_outer)
@@ -53,11 +54,11 @@ class Ant(object):
         brain.append(priority_central)
         priority_inner = init_weights([2])
         brain.append(priority_inner)
-        destination_neurons = init_weights([4,9])
+        destination_neurons = init_weights([9,4])
         brain.append(destination_neurons)
-        actions_filter = init_weights([2,3])
+        actions_filter = init_weights([3,2])
         brain.append(actions_filter)
-        action_neurons = init_weights([2,8])
+        action_neurons = init_weights([8,2])
         brain.append(action_neurons)
 
         return brain
@@ -83,10 +84,13 @@ class Ant(object):
                 break
 
     def fitness(self):
+        m = 0
+        if self.position == self.starting_position:
+            m = 20
         energy = self.energy
         killings = self.enemy_killed
         harvest = self.food_harvest
-        fitness = energy/10 + harvest*10 + killings*10
+        fitness = energy/10 + harvest*10 + killings*10 - m
         return fitness
 
     def get_status(self):
@@ -138,86 +142,85 @@ class Ant(object):
 
     def pick_action(self, env):
 
-        surroinding_env = []
+        surrounding_env = []
         patch_center = self.position
-        for in range (3):
+        for i in range (3):
             for j in range (3):
                 patch_center[0] = self.position[0] - 2 + (2*j)
-                patch_center[1] = self.position[0] - 2 + (2*j)
-                observation = get_surrounding(self, env, patch_center)
+                patch_center[1] = self.position[1] - 2 + (2*i)
+                observation = self.get_surrounding(env, patch_center)
                 surrounding_env.append(observation)        
-        close_surr = get_small_surrounding(self, env, self.position)
+        close_surr = self.get_small_surrounding(env, self.position)
         surrounding_env.append(close_surr)
 
         possible_actions = []
-        for i n range(2):
+        for i in range(2):
             outer_actions = np.matmul(surrounding_env[2*i].astype(float),
-                                    self.brain[1].astype(float))
-            for i in range(2):
+                                    self.brain[0].astype(float))
+            for i in range(len(outer_actions)):
                 outer_actions[i] = max(outer_actions[i], 0)
             possible_actions.append(outer_actions)
-        for i n range(2):
+        for i in range(2):
             outer_actions = np.matmul(surrounding_env[2*i+6].astype(float),
-                                    self.brain[1].astype(float))
-            for i in range(2):
+                                    self.brain[0].astype(float))
+            for i in range(len(outer_actions)):
                 outer_actions[i] = max(outer_actions[i], 0)
             possible_actions.append(outer_actions)
-        for i n range(4):
+        for i in range(4):
             central_actions = np.matmul(surrounding_env[2*i + 1].astype(float),
-                                        self.brain[1].astype(float))
-            for i in range(2):
+                                        self.brain[0].astype(float))
+            for i in range(len(central_actions)):
                 central_actions[i] = max(central_actions[i], 0)
             possible_actions.append(central_actions)
         inner_actions = np.matmul(surrounding_env[2*i + 1].astype(float),
-                                self.brain[2].astype(float))
-        for i in range(2):
+                                self.brain[0].astype(float))
+        for i in range(len(inner_actions)):
             inner_actions[i] = max(inner_actions[i], 0)
         possible_actions.append(inner_actions)
 
         priority = np.zeros([9])
         for i in range (4):
-            prority[i] = np.matmul(possible_actions[i].astype(float),
+            priority[i] = np.matmul(possible_actions[i].astype(float),
                                     self.brain[3].astype(float))
         for i in range (4):
-            prority[i] = np.matmul(possible_actions[i+4].astype(float),
+            priority[i+4] = np.matmul(possible_actions[i+4].astype(float),
                                     self.brain[4].astype(float))
-        prority[8] = np.matmul(possible_actions[i+4].astype(float),
+        priority[8] = np.matmul(possible_actions[8].astype(float),
                                     self.brain[5].astype(float))
-        for i in range(9):
+        for i in range(len(priority)):
             priority[i] = max(priority[i], 0)
         
-        destination = np.matmul(prority.astype(float),
-                                    self.brain[6].astype(float))
-        
-        for i in range(4):
+        destination = np.matmul(priority.astype(float),
+                                    self.brain[6].astype(float))        
+        for i in range(len(destination)):
             destination[i] = max(destination[i], 0)
-        if destination[0] >= destination[1]
+        if destination[0] >= destination[1]:
             destination[1] = 0
         else:
             destination[0] = 0
-        if destination[2] >= destination[3]
+        if destination[2] >= destination[3]:
             destination[2] = 0
         else:
             destination[3] = 0
-
-
+        
         last_inputs = np.zeros([8])
-        for i in range(4):
+        for i in range(len(destination)):
             last_inputs[i] = destination[i]        
         possible_actions = np.matmul(surrounding_env[9].astype(float),
                                     self.brain[7].astype(float))        
         for i in range(2):
-            last_inputs[i+4] = destination[i]        
+            last_inputs[i+len(destination)] = possible_actions[i]        
         outer_actions = np.matmul(surrounding_env[4].astype(float),
-                                    self.brain[2].astype(float))        
+                                    self.brain[0].astype(float))        
         for i in range(2):
-            last_inputs[i+6] = destination[i]        
-        for i in range(8):
+            last_inputs[i + len(destination) + len(possible_actions)] = \
+            outer_actions[i]        
+        for i in range(len(last_inputs)):
             last_inputs[i] = max(last_inputs[i], 0)
 
         choosen_action = np.matmul(last_inputs.astype(float),
                                     self.brain[8].astype(float))
-        for i in range(2):
+        for i in range(len(choosen_action)):
             choosen_action[i] = max(choosen_action[i], 0)
 
         if choosen_action[0] >= choosen_action[1]:
@@ -225,11 +228,10 @@ class Ant(object):
         else:
             choosen_action[0] = 0
         next_move = []
-        for i in range(2):
-            next_move.appen(choosen_action[i])
-        for i in range(4):
-            next_move.appens(destination[i])
-        
+        for i in range(len(choosen_action)):
+            next_move.append(choosen_action[i])
+        for i in range(len(destination)):
+            next_move.append(destination[i])
         return next_move
     
     def move_or_act(self, env, next_move, dangers):
@@ -246,26 +248,29 @@ class Ant(object):
                 self.act(env, target_position, 1, dangers)
         else:
             if next_move[2] > 0:
-                x = self.position[0] + 1
+                if self.position[0] + 1 <= env.get_size() -1:
+                    x = self.position[0] + 1
             elif next_move[3] > 0:
-                x = self.position[0] - 1
+                if self.position[0] + 1 >= 0:
+                    x = self.position[0] - 1
             if next_move[4] > 0:
-                x = self.position[1] + 1
+                if self.position[1] + 1 <= env.get_size() -1:
+                    x = self.position[1] + 1
             elif next_move[5] > 0:
-                x = self.position[1] - 1
+                if self.position[1] + 1 >= 0:
+                    x = self.position[1] - 1
             
             if x == self.position[0] and y == self.position[1]:                
                 while True:
                     x = self.position[0] + random.randint(0, 3) - 1
                     y = self.position[1] + random.randint(0, 3) - 1
-                    if ((x >= 0) and (x <= env_size-1) and (y >= 0) and (y <= env_size-1)):
+                    if ((x >= 0) and (x <= env_size-1) and (y >= 0) and \
+                        (y <= env_size-1)):
                         break
                 destination = [x, y]
-                self.set_movement(env, destination)
             else:
                 destination = [x, y]
-                self.set_movement(env, destination)
-
+            self.set_movement(env, destination)
 
     def set_movement(self, env, destination):
         new_x = destination[0]
@@ -309,7 +314,7 @@ class Ant(object):
         input[2] -= 1
         return input
 
-        def get_small_surrounding(self, env, center):
+    def get_small_surrounding(self, env, center):
         # return a matric 5X5 representing 
         # the surrounding of the ant
         env_size = env.get_size()
@@ -331,10 +336,9 @@ class Ant(object):
                                 env.get_value(x, y) == 1:
                                 input[c] += 1
 
-        # subtract the value brought by the ant itself
-        input[1] = input[1] -input[0]
-        input[2] = input[2] -input[0] - 1
-        return input
+            # subtract the value brought by the ant itself
+            input[2] -= 1
+            return input
 
     def act(self, env, target_position, action, dangers):
         # performes action: attack or eat
@@ -423,6 +427,6 @@ class Ant(object):
 # SUPPORT FUNCTION
 # initialize NNR weights
 def init_weights(shape):
-    init_random_dist = np.random.normal(scale=3, size=[2,25])
+    init_random_dist = np.random.normal(scale=3, size=shape)
     return init_random_dist
     
