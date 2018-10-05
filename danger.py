@@ -18,6 +18,7 @@ class Danger(object):
                 break
         # number ants close to the danger
         self.nn_ant = 0
+        self.ant_locations = []
         # power danger  
         self.power = - random.randint(1, base_power)
 
@@ -33,11 +34,13 @@ class Danger(object):
         # of the danger
         return self.power
 
-    def add_attacking_ant(self):
+    def add_attacking_ant(self, ant_location):
         self.nn_ant += 1
+        self.ant_locations.append(ant_location)
         
     def reset_attacking_ants(self):
         self.nn_ant = 0
+        self.ant_locations = []
 
 
 
@@ -152,11 +155,16 @@ class Danger(object):
         return False
                         
 
-    def get_damage(self, env, dangers):
+    def get_damage(self, env, dangers, colony):
         #il power e' definito negativo ergo ci va un * -1
         if (-1 * (self.power / 2)) <= self.nn_ant:
             env.remove_element(self.position[0], self.position[1])
             dangers.remove(self)
+            for ant_loc in self.ant_locations:
+                for ant in colony:
+                    ant_position = ant.get_position()
+                    if ant_position == ant_loc:
+                        ant.kill_reward(20)
             return True
         return False
 

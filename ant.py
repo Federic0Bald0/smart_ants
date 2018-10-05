@@ -86,7 +86,7 @@ class Ant(object):
     def fitness(self):
         m = 0
         if self.position == self.starting_position:
-            m = 20
+            m = 30
         energy = self.energy
         killings = self.enemy_killed
         harvest = self.food_harvest
@@ -95,6 +95,7 @@ class Ant(object):
 
     def get_status(self):
         # status defines what ant
+
         # is allowed to do:
         #
         # 0 -> attacking
@@ -239,6 +240,7 @@ class Ant(object):
         x = self.position[0]
         y = self.position[1]
         if next_move[0] > 0:
+            # print('I WANNA ATTACK')
             target_position = self.get_target(env, 0)
             if target_position != self.position:
                 self.act(env, target_position, 0, dangers)
@@ -346,7 +348,7 @@ class Ant(object):
         if action == 0:
             for danger in dangers:
                 if target_position == danger.get_position():
-                    danger.add_attacking_ant()
+                    danger.add_attacking_ant(self.position)
         # eat            
         else:
             # status needs to be coherent with the action

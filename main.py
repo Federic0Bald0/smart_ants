@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# 50 500 100 150 30 3 10 0
+
 import sys
 import time
 import curses
@@ -47,7 +49,7 @@ if __name__ == "__main__":
         gen = 0
         while True:
             try:
-                for i in range(turns):
+                for i in range(turns + gen/100):
 
                     # if gen > 0:
                         # win = curses.initscr()
@@ -75,7 +77,7 @@ if __name__ == "__main__":
                         # time.sleep(0.1)
                     
                     for danger in dangers:                    
-                        if not danger.get_damage(env, dangers):
+                        if not danger.get_damage(env, dangers, colony):
 
                             if not danger.attack_ant(env, colony):
                                 danger.move_random(env)
@@ -89,20 +91,21 @@ if __name__ == "__main__":
                 # print(colony_size)
                 # print('SURVIVED ANTS:')
                 # print(len(colony))
-                selected = evolution.select_from_population(colony, (len(colony)/3), 2)
+                selected = evolution.select_from_population(colony, (len(colony)/10), 2)
                 # print ('SELECTED:')
                 # print (len(selected))
                 colony = evolution.create_children(selected, env, colony_size - len(selected), mode)
                 # print ('CHILDREN:')
                 # print (len(colony))
-                colony = evolution.mutate_colony(colony, env, 20, mode)
+                mutation_probability = 40 - min(gen/300, 35)
+                colony = evolution.mutate_colony(colony, env, mutation_probability, mode)
                 for ant in selected:
                     ant[0].reset(env, mode)
                     colony.append(ant[0])
                 dangers = []
                 for i in range(n_danger):
                     # danger now have a bound on maximum possible power that scales with generations
-                    min_dangers_power = max(gen/5000, 2)
+                    min_dangers_power = max(gen/750, 2)
                     dangers.append(Danger(env, min(9, min_dangers_power)))
                 gen += 1
                 print('generation :')

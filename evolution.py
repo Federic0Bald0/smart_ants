@@ -7,15 +7,20 @@ from ant import Ant
 
 def grade_ants(colony):
     antsPerf = {}
+    sum = 0
     for ant in colony:
         antsPerf[ant] = ant.fitness()
-    return sorted(antsPerf.items(), key = operator.itemgetter(1), reverse=True)
+        sum += ant.fitness()
+    avg = sum/len(colony)
+    return sorted(antsPerf.items(), key = operator.itemgetter(1), reverse=True), avg
 
 def select_from_population(colony, best_sample, lucky_few):
     nextGen = []
-    population_sorted = grade_ants(colony)
+    population_sorted, avg = grade_ants(colony)
     print ('BEST ANT FITNESS SCORE:')
     print (population_sorted[0][0].fitness())
+    print('average fitness score: ')
+    print(avg)
     for i in range(best_sample):
         nextGen.append(population_sorted[i])
     for i in range(lucky_few):
