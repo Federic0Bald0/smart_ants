@@ -86,7 +86,7 @@ class Ant(object):
     def fitness(self):
         m = 0
         if self.position == self.starting_position:
-            m = 30
+            m = 50
         energy = self.energy
         killings = self.enemy_killed
         harvest = self.food_harvest

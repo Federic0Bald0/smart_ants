@@ -14,13 +14,22 @@ def grade_ants(colony):
     avg = sum/len(colony)
     return sorted(antsPerf.items(), key = operator.itemgetter(1), reverse=True), avg
 
-def select_from_population(colony, best_sample, lucky_few):
+def select_from_population(colony, best_sample, lucky_few, data, data_best):
     nextGen = []
     population_sorted, avg = grade_ants(colony)
     print ('BEST ANT FITNESS SCORE:')
     print (population_sorted[0][0].fitness())
-    print('average fitness score: ')
-    print(avg)
+    # print('average fitness score: ')
+    # print(avg)
+
+    score_to_save = str(avg)
+    score_to_save += '\n'
+    data.write(score_to_save)
+
+    score_to_save = str(population_sorted[0][0].fitness())
+    score_to_save += '\n'
+    data_best.write(score_to_save)
+
     for i in range(best_sample):
         nextGen.append(population_sorted[i])
     for i in range(lucky_few):

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# 50 500 100 150 30 3 10 0
+# 50 500 100 150 30 3 10 0  --> increasing turns
+# 50 500 250 100 75 3 99 0  -- fized turns
 
 import sys
 import time
@@ -47,9 +48,11 @@ if __name__ == "__main__":
         for i in range(colony_size):
             colony.append(Ant(env, mode))
         gen = 0
+        data = open('data.txt', 'w')
+        data_best = open('data_best.txt', 'w')
         while True:
             try:
-                for i in range(turns + gen/100):
+                for i in range(turns + min(gen/100, 0)):
 
                     # if gen > 0:
                         # win = curses.initscr()
@@ -91,13 +94,13 @@ if __name__ == "__main__":
                 # print(colony_size)
                 # print('SURVIVED ANTS:')
                 # print(len(colony))
-                selected = evolution.select_from_population(colony, (len(colony)/10), 2)
+                selected = evolution.select_from_population(colony, (len(colony)/10), 1, data, data_best)
                 # print ('SELECTED:')
                 # print (len(selected))
                 colony = evolution.create_children(selected, env, colony_size - len(selected), mode)
                 # print ('CHILDREN:')
                 # print (len(colony))
-                mutation_probability = 40 - min(gen/300, 35)
+                mutation_probability = 40 - min(gen/50, 25)
                 colony = evolution.mutate_colony(colony, env, mutation_probability, mode)
                 for ant in selected:
                     ant[0].reset(env, mode)
@@ -105,7 +108,7 @@ if __name__ == "__main__":
                 dangers = []
                 for i in range(n_danger):
                     # danger now have a bound on maximum possible power that scales with generations
-                    min_dangers_power = max(gen/750, 2)
+                    min_dangers_power = max(gen/150, 3)
                     dangers.append(Danger(env, min(9, min_dangers_power)))
                 gen += 1
                 print('generation :')
