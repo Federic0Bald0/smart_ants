@@ -5,13 +5,14 @@ import numpy as np
 
 class Environment(object):
 
-    def __init__(self, size):
+    def __init__(self, size, n_food):
         self.size = size
         # enviromment
         self.env = np.zeros([self.size, self.size])
-        n_food = self.size
+        # n_food = self.size
         # placing food
         k = 0
+        self.food_count = n_food
         while k < n_food:
             x = random.randint(0, size-1)
             y = random.randint(0, size-1)
@@ -31,7 +32,9 @@ class Environment(object):
 
     def remove_element(self, x, y):
         # remove an element 
-        # from the environment 
+        # from the environment
+        if self.env[x][y] == 1:
+            self.food_count -= 1
         self.env[x][y] = 0
 
     def get_value(self, x, y):
@@ -43,6 +46,9 @@ class Environment(object):
         # set value of a specific cell 
         # in the environment
         self.env[x][y] = v
+    
+    def get_food(self):
+        return self.food_count
 
     def to_string(self, generation):
         # build string environment
