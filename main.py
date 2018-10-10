@@ -18,47 +18,68 @@ if __name__ == "__main__":
     if len(sys.argv) != 9:
         print
         print 'Usage: python main.py \
-        <size_environment> \
-        <amount_food> \
-        <size_colony> \
-        <power_ants higher than zero> \
-        <number_dangers> \
-        <power_dangers maximum power> \
-        <turns> \
-        <mode>'
+        <environment size> \
+        <food amount> \
+        <colony size> \
+        <ants energy higher than zero> \
+        <number of dangers> \
+        <dangers base power> \
+        <selected ratio> \
+        <turns>'
         # TODO mancano parametri, tipo numero di figli, numero selezionati 
         print 
+
     else:
         env_size = int(sys.argv[1])
         n_food = int(sys.argv[2])
         colony_size = int(sys.argv[3])
-        ants_power = int(sys.argv[4])
+        ants_energy = int(sys.argv[4])
         n_danger = int(sys.argv[5])
-        danger_power = int(sys.argv[6])
-        turns = int(sys.argv[7])
-        mode = int(sys.argv[8])
+        base_danger_power = int(sys.argv[6])
+        selected_ratio = int(sys.argv[7])
+        turns = int(sys.argv[8])
+
+        '''
+        other paramters to insert to test
+        '''
+        damage_per_turn = 3
+        lucky_few = 2
+        base_mutation = 40
+        mutation_rate = 50
+        mutation_cap = 30   
+        danger_spawn = 50  
+        danger_mode = 0
+        danger_ratio = 5
+        danger_increase_rate =  100
+        max_danger_power = 10
+        graphic_display = 500
+        food_value = 10
+
         # build environment 
         env = Environment(env_size, n_food)
         # create danger
         dangers = []
         for i in range(n_danger):
-            dangers.append(Danger(env, mode = 0))
+            dangers.append(Danger(env, mode = danger_mode))
         # create ants
         colony = []
         for i in range(colony_size):
-            colony.append(Ant(env, mode))
+            colony.append(Ant(env, energy = ants_energy, 
+                                food_value = food_value))
         danger_count = n_danger
+
         gen = 0
         data = open('data.txt', 'w')
         data_best = open('data_best.txt', 'w')
         data_all = open('data_all.txt', 'w')
         data_foods = open('data_foods.txt', 'w')
         data_dangers = open('data_dangers.txt', 'w')
+
         while True:
             try:
                 for i in range(turns + min(gen/100, 0)):
 
-                    if gen > 500:
+                    if gen > graphic_display:
                         win = curses.initscr()
                         win.clear()
                         win.addstr(env.to_string(gen))
@@ -71,10 +92,10 @@ if __name__ == "__main__":
                     for ant in colony:
                         action = ant.pick_action(env)      
                         ant.move_or_act(env, action, dangers)
-                        ant.get_damage(env, colony, 3)
+                        ant.get_damage(env, colony, -1*damage_per_turn)
                         ant.get_neighbours(env)
                     
-                    if gen > 500:
+                    if gen > graphic_display:
                         win = curses.initscr()
                         win.clear()
                         win.addstr(env.to_string(gen))
@@ -99,41 +120,50 @@ if __name__ == "__main__":
                 score_to_save = str(env.get_food())
                 score_to_save += '\n'
                 data_foods.write(score_to_save)
-
                 score_to_save = str(danger_count)
                 score_to_save += '\n'
                 data_dangers.write(score_to_save)
-
 
                 env = Environment(env_size, n_food)
                 # print('COLONY SIZE:')
                 # print(colony_size)
                 # print('SURVIVED ANTS:')
                 # print(len(colony))
-                selected = evolution.select_from_population(colony, (len(colony)/10), 3, data, data_best, data_all, env)
+                selected = evolution.select_from_population(colony, colony_size, 
+                                                            (len(colony)/selected_ratio),
+                                                            lucky_few, env, 
+                                                            data, data_best, data_all)
                 # print ('SELECTED:')
                 # print (len(selected))
-                colony = evolution.create_children(selected, env, colony_size - len(selected), mode)
+                colony = evolution.create_children(selected, env, 
+                                                    colony_size - len(selected), 
+                                                    ants_energy, food_value)
                 # print ('CHILDREN:')
                 # print (len(colony))
-                mutation_probability = 40 - min(gen/50, 30)
-                colony = evolution.mutate_colony(colony, env, mutation_probability, mode)
+                mutation_probability = base_mutation - \
+                                        min(gen/mutation_rate, mutation_cap)
+                colony = evolution.mutate_colony(colony, env, mutation_probability, 
+                                                    ants_energy, food_value)
+
                 for ant in selected:
-                    ant[0].reset(env, mode)
+                    ant[0].reset(ants_energy, env)
                     colony.append(ant[0])
                 dangers = []
-                danger_spawn = 1
                 if gen >= danger_spawn and n_danger == 0:
-                    n_danger += len(colony)/5
+                    n_danger += len(colony)/danger_ratio
                 for i in range(n_danger):
                     # danger now have a bound on maximum possible power that scales with generations
-                    min_dangers_power = max((gen - danger_spawn)/100, 1)
-                    dangers.append(Danger(env, base_power = min(10, min_dangers_power), mode = 0))
+                    min_dangers_power = max((gen - danger_spawn)/danger_increase_rate, 
+                                            base_danger_power)
+                    dangers.append(Danger(env, base_power = min(max_danger_power, 
+                                                                min_dangers_power),  
+                                                                mode = danger_mode))
                 danger_count = n_danger
 
                 gen += 1
                 print('generation :')
                 print(gen)
+
             except Exception as e:
                 traceback.print_exc()
                 break

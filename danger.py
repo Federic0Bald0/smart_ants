@@ -17,20 +17,24 @@ class Danger(object):
                 env.set_value(x, y, -1)
                 break
         # number ants close to the danger
+        # power danger 
+        self.mode = mode
+        self.power = - random.randint(1, base_power)
         self.nn_ant = 0
         self.ant_locations = []
-        self.mode = mode
-        # power danger  
-        self.power = - random.randint(1, base_power)
+
+        '''
+        Here there are the enemies parameter that can be
+        modyfied for tresting pourposes
+        '''
         self.health = (-1) * self.power
         self.attack_power = 15
-
+        self.reward = self.power * (-10)
 
     def get_position(self):
         # returns the position 
         # of the ant 
         return self.position
-
 
     def get_power(self):
         # returns the power
@@ -44,8 +48,6 @@ class Danger(object):
     def reset_attacking_ants(self):
         self.nn_ant = 0
         self.ant_locations = []
-
-
 
     def move_random(self, env):
         # defines random move for 
@@ -134,11 +136,10 @@ class Danger(object):
                     env.remove_element(x, y)
                     self.position = [x-1, y+1]
 
-
     def damage_ant(self, env, ant, colony):
         # if we are close to an ant it damages it 
-        return ant.get_damage(env, colony, damage=self.get_power()*(self.attack_power))
-
+        return ant.get_damage(env, colony, 
+                            damage=self.get_power()*(self.attack_power))
 
     def attack_ant(self, env, colony):
         env_size = env.get_size()
@@ -155,8 +156,7 @@ class Danger(object):
                                 self.damage_ant(env, ant, colony)
                                     # colony.remove(ant)
                                 return True
-        return False
-                        
+        return False                        
 
     def get_damage(self, env, dangers, colony):
         #il power e' definito negativo ergo ci va un * -1
@@ -169,7 +169,7 @@ class Danger(object):
                     for ant in colony:
                         ant_position = ant.get_position()
                         if ant_position == ant_loc:
-                            ant.kill_reward(50)
+                            ant.kill_reward(self.reward)
                 return True
         if self.mode == 1:
             self.health -= self.nn_ant 
@@ -180,7 +180,7 @@ class Danger(object):
                     for ant in colony:
                         ant_position = ant.get_position()
                         if ant_position == ant_loc:
-                            ant.kill_reward(20)
+                            ant.kill_reward(self.reward)
                 return True
         elif self.mode == 2:
             if (self.power/2 + self.nn_ant) >= 0:
@@ -190,7 +190,7 @@ class Danger(object):
                     for ant in colony:
                         ant_position = ant.get_position()
                         if ant_position == ant_loc:
-                            ant.kill_reward(20)
+                            ant.kill_reward(self.reward)
                 return True
         return False
 
