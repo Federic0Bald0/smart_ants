@@ -89,7 +89,7 @@ class Ant(object):
 
         # Check the ant stats
         energy = self.energy
-        surroundings = self.get_small_surrounding(env, self.position)
+        surroundings = self.observe_environment(env, self.position)
         killings = self.enemy_killed
         harvest = self.food_harvest
         good_actions = self.good_actions
@@ -171,7 +171,7 @@ class Ant(object):
         self.enemy_killed += 1
 
     def get_neighbours(self, env):
-        surroundings = self.get_small_surrounding(env, self.position)
+        surroundings = self.observe_environment(env, self.position)
         self.neighbours += surroundings[0]
 
     def get_damage(self, env, colony, damage=0):
@@ -218,7 +218,7 @@ class Ant(object):
         input_attack = np.reshape(input_attack, [-1])
         return inputs, input_attack, input_eat
 
-    def get_small_surrounding(self, env, center):
+    def observe_environment(self, env, center):
         # return a matric 3x3 representing 
         # the surrounding of the ant
         env_size = env.get_size()
@@ -252,7 +252,7 @@ class Ant(object):
             for j in range (3):
                 patch_center[0] = self.position[0] - 1 + j
                 patch_center[1] = self.position[1] - 1 + i
-                observation = self.get_small_surrounding(env, patch_center)
+                observation = self.observe_environment(env, patch_center)
                 for k in range(len(observation)):
                     surrounding_env[i*9 + j*3 + k] = observation[k]
         
