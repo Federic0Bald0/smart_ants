@@ -208,15 +208,8 @@ class Ant(object):
 
         # subtract the value brought by the ant itself
         inputs[4][0] = 0
-        input_eat = inputs
-        input_attack = inputs
-        for i in range (9):
-            input_eat[i][1]
-            input_attack[i][2]
         inputs = np.reshape(inputs, [-1])
-        input_eat = np.reshape(input_eat, [-1])
-        input_attack = np.reshape(input_attack, [-1])
-        return inputs, input_attack, input_eat
+        return inputs
 
     def observe_environment(self, env, center):
         # return a matric 3x3 representing 
@@ -280,22 +273,18 @@ class Ant(object):
             else:
                 surrounding_env[30] = 1
         
-        near_env, attack_matrix, eat_matrix = self.get_surrounding(env, self.position)
+        near_env = self.get_surrounding(env, self.position)
         
         movement_dir = np.matmul(surrounding_env.astype(float),
                             self.brain[0].astype(float))
         
-        attack_value = np.matmul(attack_matrix.astype(float),
-                                    self.brain[1].astype(float))[0]
-        eat_value = np.matmul(eat_matrix.astype(float),
-                                    self.brain[1].astype(float))[1]
-        move_value = np.matmul(near_env.astype(float),
-                                    self.brain[1].astype(float))[2]
+        actions_value = np.matmul(near_env.astype(float),
+                                    self.brain[1].astype(float))
 
         choosen_action = np.zeros([7])
-        choosen_action[0] = attack_value
-        choosen_action[1] = eat_value
-        choosen_action[2] = move_value
+
+        for i in range (3):
+            choosen_action[i] = actions_value[i]
 
         for i in range (4):
             choosen_action[i+3] = movement_dir[i]

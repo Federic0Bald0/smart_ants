@@ -52,7 +52,7 @@ if __name__ == "__main__":
         danger_ratio = 5
         danger_increase_rate =  100
         max_danger_power = 10
-        graphic_display = 500
+        graphic_display = 10
         food_value = 10
 
         # build environment 
