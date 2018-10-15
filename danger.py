@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import math
-import random 
+import random
 
 class Danger(object):
 
-    def __init__(self, env, base_power = 2, mode = 0):
+    def __init__(self, env, base_power=2, mode=0):
 
         env_size = env.get_size()
         # position in env
-        while True: 
+        while True:
             x = random.randint(0, env_size-1)
             y = random.randint(0, env_size-1)
             if env.is_free(x, y):
@@ -17,8 +17,13 @@ class Danger(object):
                 env.set_value(x, y, -1)
                 break
         # number ants close to the danger
-        # power danger 
+        # power danger
         self.mode = mode
+        """
+        0 -> si attaccano a vicenda
+        1 -> si attaccano a vicenda, ma vita e power distinti
+        2 -> vecchia versione (formiche intorno a danger determinano danno)
+        """
         self.power = - random.randint(1, base_power)
         self.nn_ant = 0
         self.ant_locations = []
@@ -32,8 +37,8 @@ class Danger(object):
         self.reward = self.power * (-10)
 
     def get_position(self):
-        # returns the position 
-        # of the ant 
+        # returns the position
+        # of the ant
         return self.position
 
     def get_power(self):
@@ -44,13 +49,13 @@ class Danger(object):
     def add_attacking_ant(self, ant_location):
         self.nn_ant += 1
         self.ant_locations.append(ant_location)
-        
+
     def reset_attacking_ants(self):
         self.nn_ant = 0
         self.ant_locations = []
 
     def move_random(self, env):
-        # defines random move for 
+        # defines random move for
         # the danger
         axis = random.uniform(0, 3)
         way = random.uniform(0, 1)
@@ -111,7 +116,7 @@ class Danger(object):
                 (y > 0) and \
                 (x >= 0) and \
                 (env.is_free(x+1, y-1)):
-                # move south-est 
+                # move south-est
                     env.set_value(x+1, y-1, -1)
                     env.remove_element(x, y)
                     self.position = [x+1, y-1]
@@ -137,8 +142,8 @@ class Danger(object):
                     self.position = [x-1, y+1]
 
     def damage_ant(self, env, ant, colony):
-        # if we are close to an ant it damages it 
-        return ant.get_damage(env, colony, 
+        # if we are close to an ant it damages it
+        return ant.get_damage(env, colony,
                             damage=self.get_power()*(self.attack_power))
 
     def attack_ant(self, env, colony):
@@ -151,17 +156,18 @@ class Danger(object):
                     (y<0) or (y > env_size-1)):
                     if env.get_value(x, y) == 2:
                         for ant in colony:
-                            ant_position = ant.get_position() 
+                            ant_position = ant.get_position()
                             if ant_position == [x, y]:
                                 self.damage_ant(env, ant, colony)
                                     # colony.remove(ant)
                                 return True
-        return False                        
+        return False
 
     def get_damage(self, env, dangers, colony):
-        #il power e' definito negativo ergo ci va un * -1
+        # determines how the ants are damaged
+        # based on the type of danger
         if self.mode == 0:
-            self.power += self.nn_ant 
+            self.power += self.nn_ant
             if self.power >= 0:
                 env.remove_element(self.position[0], self.position[1])
                 dangers.remove(self)
@@ -172,7 +178,7 @@ class Danger(object):
                             ant.kill_reward(self.reward)
                 return True
         if self.mode == 1:
-            self.health -= self.nn_ant 
+            self.health -= self.nn_ant
             if self.health <= 0:
                 env.remove_element(self.position[0], self.position[1])
                 dangers.remove(self)
@@ -194,4 +200,3 @@ class Danger(object):
                 return True
         return False
 
-    

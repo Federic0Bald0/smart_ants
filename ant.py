@@ -6,9 +6,9 @@ import numpy as np
 
 
 class Ant(object):
-    
-    def __init__(self, env, energy = 100,  food_value = 10, genetic_inh=None, child = 0):
-        
+
+    def __init__(self, env, energy=100,  food_value=10, genetic_inh=None, child=0):
+
         self.energy = energy
         self.food_value = food_value
 
@@ -16,9 +16,9 @@ class Ant(object):
         self.enemy_killed = 0
         self.good_actions = 0
         self.bad_actions = 0
-        self.neighbours = 0   
-        self.movements = 0     
-        
+        self.neighbours = 0
+        self.movements = 0
+
         env_size = env.get_size()
         # identifier, it must be unique
         # millisec should be fine as long as
@@ -30,31 +30,31 @@ class Ant(object):
             y = random.randint(0, env_size-1)
             # position i, j is free
             if env.is_free(x, y):
-                self.position = [x, y]    
+                self.position = [x, y]
                 env.set_value(x, y, 2)
                 break
-        # weight inzialization     
-        self.starting_position = self.position                                                    
+        # weight inzialization
+        self.starting_position = self.position
         if child == 1:
             # child
             self.brain = genetic_inh
         else:
-            # first generation 
+            # first generation
             self.brain = self.create_new_brain()
 
 
     def reset(self, energy, env):
-        # reset values for 
+        # reset values for
         # fitness function
         self.energy = energy
         self.food_harvest = 0
         self.enemy_killed = 0
         self.good_actions = 0
         self.bad_actions = 0
-        self.neighbours = 0  
+        self.neighbours = 0
         self.food_harvest = 0
         self.enemy_killed = 0
-        self.movements = 0     
+        self.movements = 0
 
         # choose randomly position in environment
         env_size = env.get_size()
@@ -63,27 +63,27 @@ class Ant(object):
             y = random.randint(0, env_size-1)
             # position i, j is free
             if env.is_free(x, y):
-                self.position = [x, y]    
+                self.position = [x, y]
                 env.set_value(x, y, 2)
                 break
-        self.starting_position = self.position     
-    
+        self.starting_position = self.position
+
     def fitness(self, env):
         '''
         The following values are the coefficient of the fitness function
         Modify them will also modify the evolution parameters
         '''
         har_coef = 100
-        kill_coef = 1000
-        comb_coef = 2000
-        good_coef = 1000
-        bad_coef = 1000
+        kill_coef = 100
+        comb_coef = 100
+        good_coef = 100
+        bad_coef = 100
         neig_coef = 5
         hp_coef = 3
-        border_malus = 500000
-        immobile_malus = 100000
-        harvest_malus = 5000
-        kill_malus = 2000
+        border_malus = 50
+        immobile_malus = 50
+        harvest_malus = 50
+        kill_malus = 50
         movement_coef = 1500
         bonus_ratio = 25
 
@@ -106,7 +106,7 @@ class Ant(object):
             self.position[1] == 0 or \
             self.position[1] == env.get_size() - 1:
             malus += border_malus
-        
+
         if self.position[0] == 1 or \
             self.position[0] == env.get_size() - 2 or \
             self.position[1] == 1 or \
@@ -121,14 +121,14 @@ class Ant(object):
             malus += harvest_malus
         if surroundings[0] > 0:
             bonus += surroundings[0]*bonus_ratio
-        
+
         # Evaluate the fitness function
         fitness = energy*hp_coef + global_neighbours * neig_coef + \
                     harvest*har_coef + killings*kill_coef + \
                     harvest*killings*comb_coef + good_actions*good_coef - \
                     bad_actions*bad_coef + movements*movement_coef - \
                     malus + bonus
-        
+
         return fitness
 
     def create_new_brain(self):
@@ -146,26 +146,26 @@ class Ant(object):
         return self.brain
 
     def get_position(self):
-        # returns the position 
+        # returns the position
         # in the board of the ant
         return self.position
 
     def set_position(self, x, y):
-        # set new position 
-        # of the ant 
+        # set new position
+        # of the ant
         self.positon = [x, y]
 
     def get_energy(self):
         # returns the value representing
-        # the energy of the ant 
-        return self.energy  
+        # the energy of the ant
+        return self.energy
 
     def rise_energy(self, energy):
         # rise current energy level
         self.energy += energy
 
     def kill_reward(self, energy):
-        # get energy and a fitness parameter point 
+        # get energy and a fitness parameter point
         # as reward for killing dangers
         self.energy += energy
         self.enemy_killed += 1
@@ -175,7 +175,7 @@ class Ant(object):
         self.neighbours += surroundings[0]
 
     def get_damage(self, env, colony, damage=0):
-        # DAMAGE HAS TO BE A NEGATIVE NUMBER
+        # DAMAGE MUST TO BE A NEGATIVE NUMBER
         # returns true if it's dead
         self.energy = self.energy + damage
         if self.energy <= 0:
@@ -185,7 +185,6 @@ class Ant(object):
         return False
 
     def get_surrounding(self, env, center):
-        # return a matric 5X5 representing 
         # the surrounding of the ant
         env_size = env.get_size()
         inputs = np.zeros([9,3])
@@ -193,7 +192,7 @@ class Ant(object):
             for i in range(3):
                 for j in range(3):
                     x = (center[0]-1+i)
-                    y = (center[1]-1+j)           
+                    y = (center[1]-1+j)
                     if not ((x<0) or (x > (env_size-1)) or \
                         (y<0) or (y > (env_size-1))):
                             if c == 0 and \
@@ -212,7 +211,6 @@ class Ant(object):
         return inputs
 
     def observe_environment(self, env, center):
-        # return a matric 3x3 representing 
         # the surrounding of the ant
         env_size = env.get_size()
         input = np.zeros([3])
@@ -220,7 +218,7 @@ class Ant(object):
             for i in range(3):
                 for j in range(3):
                     x = (center[0]-1+i)
-                    y = (center[1]-1+j)           
+                    y = (center[1]-1+j)
                     if not ((x<0) or (x > (env_size-1)) or \
                         (y<0) or (y > (env_size-1))):
                             if c == 0 and \
@@ -248,36 +246,36 @@ class Ant(object):
                 observation = self.observe_environment(env, patch_center)
                 for k in range(len(observation)):
                     surrounding_env[i*9 + j*3 + k] = observation[k]
-        
+
         if self.position[0] <= 1:
             if self.position[0] <= 0:
                 surrounding_env[27] = 3
             else:
                 surrounding_env[27] = 1
-        
+
         if self.position[1] <= 1:
             if self.position[1] <= 0:
                 surrounding_env[28] = 3
             else:
                 surrounding_env[28] = 1
-        
+
         if self.position[0] >= env.get_size() - 2:
             if self.position[0] >= env.get_size() - 1:
                 surrounding_env[29] = 3
             else:
                 surrounding_env[29] = 1
-        
+
         if self.position[0] >= env.get_size() - 2:
             if self.position[0] >= env.get_size() - 1:
                 surrounding_env[30] = 3
             else:
                 surrounding_env[30] = 1
-        
+
         near_env = self.get_surrounding(env, self.position)
-        
+
         movement_dir = np.matmul(surrounding_env.astype(float),
                             self.brain[0].astype(float))
-        
+
         actions_value = np.matmul(near_env.astype(float),
                                     self.brain[1].astype(float))
 
@@ -288,11 +286,11 @@ class Ant(object):
 
         for i in range (4):
             choosen_action[i+3] = movement_dir[i]
-        
+
         for i in range(len(choosen_action)):
             choosen_action[i] += self.brain[2][i]
             choosen_action[i] = max(choosen_action[i], 0)
-        
+
         if max(choosen_action[0], choosen_action[1], choosen_action[2]) == choosen_action[0]:
             choosen_action[1] = 0
             choosen_action[2] = 0
@@ -302,7 +300,7 @@ class Ant(object):
         elif max(choosen_action[0], choosen_action[1], choosen_action[2]) == choosen_action[2]:
             choosen_action[1] = 0
             choosen_action[0] = 0
-        
+
 
         if choosen_action[3] >= choosen_action[4]:
             choosen_action[4] = 0
@@ -315,7 +313,7 @@ class Ant(object):
             choosen_action[5] = 0
 
         return choosen_action
-    
+
     def get_target(self, env, action):
         # returns position of the nearest target
         env_size = env.get_size()
@@ -323,11 +321,11 @@ class Ant(object):
             for j in range(3):
                 x = (self.position[0]-1+i)
                 y = (self.position[1]-1+j)
-                if not ((x<0) or (x > env_size-1) or (y<0) or (y > env_size-1)):                        
+                if not ((x<0) or (x > env_size-1) or (y<0) or (y > env_size-1)):
                     if ((action==0) and (env.get_value(x, y) == -1)) or \
                             ((action  == 1) and (env.get_value(x, y) == 1)):
                         return([x, y])
-        
+
         return(self.position)
 
     def move_or_act(self, env, next_move, dangers):
@@ -352,7 +350,7 @@ class Ant(object):
                 self.bad_actions -= 1
 
         else:
-            self.movements += 1     
+            self.movements += 1
             if next_move[3] > 0:
                 if self.position[0] + 1 <= env.get_size() -1:
                     x += 1
@@ -365,8 +363,8 @@ class Ant(object):
             elif next_move[6] > 0:
                 if self.position[1] - 1 >= 0:
                     y -= 1
-            
-            if x == self.position[0] and y == self.position[1]:                
+
+            if x == self.position[0] and y == self.position[1]:
                 while True:
                     x = self.position[0] + random.randint(0, 3) - 1
                     y = self.position[1] + random.randint(0, 3) - 1
@@ -385,7 +383,7 @@ class Ant(object):
             for danger in dangers:
                 if target_position == danger.get_position():
                     danger.add_attacking_ant(self.position)
-        # eat            
+        # eat
         else:
             # status needs to be coherent with the action
             # rise its energy and his fitness parameter
@@ -395,7 +393,7 @@ class Ant(object):
 
     def set_movement(self, env, choosen_action):
         new_x = choosen_action[0]
-        new_y = choosen_action[1]        
+        new_y = choosen_action[1]
         if [new_x, new_y] != self.position:
             if env.is_free(new_x, new_y) == True:
                 self.move_to(env, new_x, new_y)
@@ -409,7 +407,7 @@ class Ant(object):
         # also added a check for make sure that the ants does not try to move out of the env
 
         # if X axis is the same the ant looks for the two closest position along the X axis
-        env_size = env.get_size()  
+        env_size = env.get_size()
         if target_position[0] == self.position[0]:
             if (target_position[0]+1) < env_size-1:
                 if env.is_free((target_position[0]+1), target_position[1]):
@@ -432,7 +430,7 @@ class Ant(object):
                     target_position = [target_position[0], (target_position[1]-1)]
                     return target_position
             else:
-                return self.position 
+                return self.position
         # if the ant wants to move in a corner it looks for the two position near the corner
         else:
             if env.is_free(self.position[0], target_position[1]):
@@ -449,10 +447,10 @@ class Ant(object):
         env.set_value(x, y, 2)
         self.position = [x, y]
 
-    
+
 # SUPPORT FUNCTION
 # initialize NNR weights
 def init_weights(shape):
     init_random_dist = np.random.normal(scale=3, size=shape)
     return init_random_dist
-    
+
