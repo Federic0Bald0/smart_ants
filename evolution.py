@@ -31,9 +31,8 @@ def select_from_population(colony, colony_size, best_sample, lucky_few, env):
         nextGen.append(population_sorted[i])
     for i in range(lucky_few):
         nextGen.append(random.choice(population_sorted))
-    best_ant = population_sorted[0][0].fitness(env)
     random.shuffle(nextGen)
-    return nextGen, avg, best_ant
+    return nextGen, avg
 
 
 def select_genes(ant1, ant2):

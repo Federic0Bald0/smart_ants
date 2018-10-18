@@ -73,19 +73,19 @@ class Ant(object):
         The following values are the coefficient of the fitness function
         Modify them will also modify the evolution parameters
         '''
-        har_coef = 100
-        kill_coef = 100
+        har_coef = 5
+        kill_coef = 10
         comb_coef = 100
-        good_coef = 100
-        bad_coef = 100
-        neig_coef = 5
+        good_coef = 20
+        bad_coef = 5
+        neig_coef = 0
         hp_coef = 3
-        border_malus = 50
-        immobile_malus = 50
+        border_malus = 100
+        immobile_malus = 1000
         harvest_malus = 50
-        kill_malus = 50
-        movement_coef = 1500
-        bonus_ratio = 25
+        kill_malus = 20
+        movement_coef = 0
+        bonus_ratio = 0
 
         # Check the ant stats
         energy = self.energy
@@ -128,6 +128,7 @@ class Ant(object):
                     harvest*killings*comb_coef + good_actions*good_coef - \
                     bad_actions*bad_coef + movements*movement_coef - \
                     malus + bonus
+        # fitness = energy + harvest*har_coef + killings*kill_coef
 
         return fitness
 

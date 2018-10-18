@@ -61,9 +61,10 @@ if __name__ == "__main__":
         env = Environment(env_size, n_food)
         # create danger
         dangers = []
-        for i in range(n_danger):
-            dangers.append(Danger(env, mode = danger_mode))
-        danger_count = n_danger
+        if danger_appereance == 0:
+            for i in range(n_danger):
+                dangers.append(Danger(env, mode = danger_mode))
+            danger_count = n_danger
         # create ants
         colony = []
         for i in range(colony_size):
@@ -83,7 +84,7 @@ if __name__ == "__main__":
                         win.addstr('\n')
                         win.addstr('Generation : ' + str(gen))
                         win.refresh()
-                        time.sleep(0.1)
+                        time.sleep(0.05)
 
                     for ant in colony:
                         # ants behaving
@@ -105,7 +106,7 @@ if __name__ == "__main__":
                 survivor = len(colony)
                 env = Environment(env_size, n_food) # reset environment
                 # EVOLUTION
-                selected, avg, best_ant = evolution.select_from_population(
+                selected, avg = evolution.select_from_population(
                                                 colony, colony_size,
                                                 (len(colony)/selected_ratio),
                                                 lucky_few, env)
@@ -121,17 +122,18 @@ if __name__ == "__main__":
                     colony.append(ant[0])
                 dangers = []
                 # reset dangers
-                if n_danger == 0:
-                    n_danger += n
-                for i in range(n_danger):
-                    # danger now have a bound on maximum possible power that scales with generations
-                    # dangers.append(Danger(env, base_power= min(max_danger_power,
-                    #                                             min_dangers_power),
-                    #                                             mode = danger_mode))
-                    dangers.append(Danger(env, base_power=max_danger_power))
-                danger_count = n_danger
-                print gen, survivor, avg, best_ant
-                if gen == 500:
+                if danger_appereance <= gen:
+                    # if n_danger == 0:
+                    #     n_danger += n
+                    for i in range(n_danger):
+                        # danger now have a bound on maximum possible power that scales with generations
+                        # dangers.append(Danger(env, base_power= min(max_danger_power,
+                        #                                             min_dangers_power),
+                        #                                             mode = danger_mode))
+                        dangers.append(Danger(env, base_power=max_danger_power))
+                    danger_count = n_danger
+                print gen, survivor, avg
+                if gen == 200:
                     break
                 gen += 1
                 # print('generation :')
